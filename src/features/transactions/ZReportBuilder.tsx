@@ -1,0 +1,219 @@
+import { useState, useRef } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { api } from '@/lib/api';
+import type { ZReport } from '@/types/schema';
+import { SidePanelForm } from '@/components/layout/SidePanelForm';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Store, Receipt, Paperclip, AlertTriangle } from 'lucide-react';
+import { formatCurrency } from '@/lib/formatting';
+
+export function ZReportBuilder({ open, onOpenChange }: { open: boolean; onOpenChange: (show: boolean) => void }) {
+  const [time, setTime] = useState(new Date().toLocaleTimeString('nb-NO', { hour: '2-digit', minute: '2-digit' }));
+  const [draft, setDraft] = useState<Partial<ZReport>>({
+    date: new Date().toISOString().split('T')[0],
+    cardSales: 0,
+    vippsSales: 0,
+    cashSales: 0,
+    vat25: 0,
+    vat15: 0,
+    vat0: 0,
+    actualCash: 0,
+    receiptUrl: ''
+  });
+  const [error, setError] = useState('');
+  
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const queryClient = useQueryClient();
+
+  const createMutation = useMutation({
+    mutationFn: (data: Omit<ZReport, 'id'>) => api.zreports.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['zreports'] });
+      onOpenChange(false);
+      // Reset
+      setDraft({
+        date: new Date().toISOString().split('T')[0],
+        cardSales: 0, vippsSales: 0, cashSales: 0,
+        vat25: 0, vat15: 0, vat0: 0,
+        actualCash: 0, receiptUrl: ''
+      });
+      setTime(new Date().toLocaleTimeString('nb-NO', { hour: '2-digit', minute: '2-digit' }));
+      setError('');
+    }
+  });
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const base64String = event.target?.result as string;
+      setDraft(prev => ({ ...prev, receiptUrl: base64String }));
+      setError(''); // clear receipt errors
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const grossSales = (draft.cardSales || 0) + (draft.vippsSales || 0) + (draft.cashSales || 0);
+  const totalVatInputs = (draft.vat25 || 0) + (draft.vat15 || 0) + (draft.vat0 || 0);
+  const isVatBalanced = totalVatInputs === grossSales;
+
+  // Forventet Kontantbeholdning = Previous day's closing balance (mocked as 0) + today's cash sales
+  const expectedCash = 0 + (draft.cashSales || 0);
+  const cashDifference = (draft.actualCash || 0) - expectedCash;
+
+  const handleSave = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!draft.receiptUrl) {
+      setError('Obligatorisk: Du må laste opp Z-rapport kvitteringen for å bokføre (Bokføringsloven).');
+      return;
+    }
+    if (!isVatBalanced) {
+      setError('Feil i mva-grunnlag: Summen av salg fordelt på mva-satser er ikke lik brutto omsetning.');
+      return;
+    }
+
+    createMutation.mutate({
+      date: new Date(`${draft.date}T${time}:00`).toISOString(),
+      cardSales: draft.cardSales || 0,
+      vippsSales: draft.vippsSales || 0,
+      cashSales: draft.cashSales || 0,
+      grossSales,
+      vat25: draft.vat25 || 0,
+      vat15: draft.vat15 || 0,
+      vat0: draft.vat0 || 0,
+      expectedCash,
+      actualCash: draft.actualCash || 0,
+      cashDifference,
+      receiptUrl: draft.receiptUrl,
+      status: 'completed'
+    });
+  };
+
+  return (
+    <SidePanelForm
+      open={open}
+      onOpenChange={onOpenChange}
+      maxWidthClass="sm:max-w-md"
+      title={<><Store className="h-6 w-6 text-primary shrink-0" /> Nytt Kasseoppgjør</>}
+      description="Dagsavslutning for fysisk kassesystem og utsalgssted."
+      onSubmit={handleSave}
+      onCancel={() => onOpenChange(false)}
+      isSubmitting={createMutation.isPending}
+      submitText="Bokfør"
+    >
+      <div className="space-y-8">
+            {error && (
+              <div className="mb-2 p-4 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm flex gap-2 items-start">
+                <AlertTriangle className="w-5 h-5 shrink-0" />
+                <p>{error}</p>
+              </div>
+            )}
+            
+            <div className="space-y-4">
+            <h3 className="font-semibold text-sm tracking-wider uppercase text-muted-foreground flex items-center gap-2">
+              Dato & Tidspunkt
+            </h3>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="flex flex-col justify-end gap-2">
+                <Label>Dato for avslutning</Label>
+                <Input 
+                  type="date" 
+                  value={draft.date} 
+                  onChange={e => setDraft(prev => ({ ...prev, date: e.target.value }))}
+                  className="font-mono"
+                />
+              </div>
+              <div className="flex flex-col justify-end gap-2">
+                <Label>Klokkeslett</Label>
+                <Input 
+                  type="time" 
+                  value={time} 
+                  onChange={e => setTime(e.target.value)}
+                  className="font-mono"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-4 pt-4 border-t">
+            <h3 className="font-semibold text-sm tracking-wider uppercase text-muted-foreground flex items-center gap-2">
+              Betalingsmidler
+            </h3>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="flex flex-col justify-end gap-2"><Label>Kort (iZettle / Terminal)</Label><Input type="number" step="0.01" value={draft.cardSales || ''} onChange={e => setDraft(p => ({ ...p, cardSales: Number(e.target.value) }))} /></div>
+              <div className="flex flex-col justify-end gap-2"><Label>Vipps</Label><Input type="number" step="0.01" value={draft.vippsSales || ''} onChange={e => setDraft(p => ({ ...p, vippsSales: Number(e.target.value) }))} /></div>
+              <div className="flex flex-col justify-end gap-2"><Label>Kontant (Salg)</Label><Input type="number" step="0.01" value={draft.cashSales || ''} onChange={e => setDraft(p => ({ ...p, cashSales: Number(e.target.value) }))} /></div>
+            </div>
+            <div className="p-3 bg-muted/50 rounded-lg flex items-center justify-between border">
+              <span className="font-medium text-muted-foreground">Brutto Omsetning</span>
+              <span className="text-xl font-bold font-mono">{formatCurrency(grossSales)}</span>
+            </div>
+          </div>
+
+          <div className="space-y-4 pt-4 border-t">
+            <h3 className="font-semibold text-sm tracking-wider uppercase text-muted-foreground flex items-center gap-2">
+              MVA-grunnlag
+            </h3>
+            <div className="grid grid-cols-3 gap-4">
+              <div className="flex flex-col justify-end gap-2"><Label>Salg 25%</Label><Input type="number" step="0.01" value={draft.vat25 || ''} onChange={e => setDraft(p => ({ ...p, vat25: Number(e.target.value) }))} /></div>
+              <div className="flex flex-col justify-end gap-2"><Label>Salg 15%</Label><Input type="number" step="0.01" value={draft.vat15 || ''} onChange={e => setDraft(p => ({ ...p, vat15: Number(e.target.value) }))} /></div>
+              <div className="flex flex-col justify-end gap-2"><Label>Fritatt (0%)</Label><Input type="number" step="0.01" value={draft.vat0 || ''} onChange={e => setDraft(p => ({ ...p, vat0: Number(e.target.value) }))} /></div>
+            </div>
+            
+            <div className={`p-3 rounded-lg flex items-center justify-between border transition-colors ${isVatBalanced ? 'bg-green-500/10 border-green-500/20 text-green-600' : 'bg-destructive/10 border-destructive/20 text-destructive'}`}>
+              <span className="font-medium">Sum Fordelt</span>
+              <span className="font-bold font-mono">{formatCurrency(totalVatInputs)}</span>
+            </div>
+          </div>
+
+          <div className="space-y-4 pt-4 border-t">
+            <h3 className="font-semibold text-sm tracking-wider uppercase text-muted-foreground flex items-center gap-2">
+              Kassedifferanse
+            </h3>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="flex flex-col justify-end gap-2"><Label>Forventet Kontantbeholdning</Label><Input type="text" readOnly disabled value={formatCurrency(expectedCash)} className="bg-muted/50 font-mono" /></div>
+              <div className="flex flex-col justify-end gap-2"><Label>Talt Opp i Kassen</Label><Input type="number" step="0.01" value={draft.actualCash || ''} onChange={e => setDraft(p => ({ ...p, actualCash: Number(e.target.value) }))} /></div>
+            </div>
+            <div className="flex items-center justify-between p-3 border rounded-lg bg-muted/30">
+              <span className="font-medium text-muted-foreground">Kassedifferanse (Manko/Overskudd)</span>
+              <span className={`text-xl font-bold font-mono ${cashDifference === 0 ? 'text-primary' : cashDifference > 0 ? 'text-green-500' : 'text-destructive'}`}>
+                {cashDifference > 0 ? '+' : ''}{formatCurrency(cashDifference)}
+              </span>
+            </div>
+          </div>
+
+          <div className="space-y-4 pt-4 border-t">
+            <h3 className="font-semibold text-sm tracking-wider uppercase text-muted-foreground flex items-center gap-2">
+              Obligatorisk Vedlegg
+            </h3>
+            <input type="file" ref={fileInputRef} className="hidden" accept="image/*,.pdf" onChange={handleFileUpload} />
+            <div 
+              onClick={() => fileInputRef.current?.click()}
+              className={`w-full p-6 border-2 border-dashed rounded-xl flex flex-col items-center justify-center cursor-pointer transition-colors ${draft.receiptUrl ? 'bg-primary/5 border-primary/30' : 'hover:bg-accent/50 hover:border-primary/30'}`}
+            >
+              {draft.receiptUrl ? (
+                <>
+                  <div className="w-12 h-12 rounded-full bg-green-500/20 flex items-center justify-center mb-3">
+                    <Receipt className="w-6 h-6 text-green-500" />
+                  </div>
+                  <p className="font-medium">Z-Rapport vedlagt</p>
+                  <p className="text-xs text-muted-foreground mt-1">Trykk for å endre fil</p>
+                </>
+              ) : (
+                <>
+                  <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center mb-3">
+                    <Paperclip className="w-6 h-6 text-muted-foreground" />
+                  </div>
+                  <p className="font-medium text-center">Last opp terminal-/kassekvittering</p>
+                  <p className="text-xs text-red-500 mt-1">Lovpålagt for bokføring</p>
+                </>
+              )}
+            </div>
+          </div>
+
+      </div>
+    </SidePanelForm>
+  );
+}
