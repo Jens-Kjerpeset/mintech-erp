@@ -52,10 +52,13 @@ export const contactSchema = z.object({
   email: z.string().email("Ugyldig e-post").optional().or(z.literal("")),
   phone: z.string().optional(),
   address: z.string().optional(),
-  zipCity: z.string().optional(),
+  zipCode: z.string().optional(),
+  city: z.string().optional(),
   paymentTermsDays: z.number().int().min(0).default(14),
   currency: z.enum(["NOK", "EUR", "USD"]).default("NOK"),
   vatHandling: z.enum(["Standard", "Fritatt", "Omvendt avgiftsplikt"]).default("Standard"),
+  ehfEnabled: z.boolean().default(false),
+  defaultAccount: z.string().optional(),
 });
 export type Contact = z.infer<typeof contactSchema>;
 
@@ -100,7 +103,9 @@ export const settingsSchema = z.object({
   // 1. Bedriftsopplysninger
   companyName: z.string().min(1, "Selskapsnavn er påkrevd").default("Kotta"),
   orgNumber: z.string().min(1, "Organisasjonsnummer er påkrevd").default("987 654 321 MVA"),
-  companyAddress: z.string().default("Bergen, Norge"),
+  companyAddress: z.string().default("Bergen"),
+  companyZipCode: z.string().default("5003"),
+  companyCity: z.string().default("Bergen"),
   bankAccount: z.string().default("1234.56.78901"),
   vippsNumber: z.string().optional(),
   iban: z.string().optional(),

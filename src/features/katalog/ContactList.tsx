@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import type { Contact } from '@/types/schema';
@@ -15,8 +16,18 @@ import { Building2 } from 'lucide-react';
 export function ContactList() {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
   
+  const location = useLocation();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
+
+  const handleOpenChange = (open: boolean) => {
+    setIsSheetOpen(open);
+    if (!open && location.state?.returnToDashboard) {
+      setTimeout(() => navigate('/', { replace: true }), 300);
+    }
+  };
 
   const { data: contacts, isLoading } = useQuery({
     queryKey: ['contacts'],
@@ -27,7 +38,7 @@ export function ContactList() {
     mutationFn: (data: Omit<Contact, 'id'>) => api.contacts.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['contacts'] });
-      setIsSheetOpen(false);
+      handleOpenChange(false);
     },
   });
 
@@ -35,7 +46,7 @@ export function ContactList() {
     mutationFn: ({ id, data }: { id: string, data: Partial<Contact> }) => api.contacts.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['contacts'] });
-      setIsSheetOpen(false);
+      handleOpenChange(false);
     },
   });
 
@@ -43,7 +54,7 @@ export function ContactList() {
     mutationFn: (id: string) => api.contacts.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['contacts'] });
-      setIsSheetOpen(false);
+      handleOpenChange(false);
     },
   });
 
@@ -58,7 +69,8 @@ export function ContactList() {
       email: '',
       phone: '',
       address: '',
-      zipCity: '',
+      zipCode: '',
+      city: '',
       paymentTermsDays: 14,
       currency: 'NOK',
       vatHandling: 'Standard',
@@ -69,7 +81,7 @@ export function ContactList() {
     setSelectedContact(null);
     form.reset({
       name: '', relationType: 'Kunde', orgNumber: '', contactPerson: '', email: '',
-      phone: '', address: '', zipCity: '', paymentTermsDays: 14, currency: 'NOK', vatHandling: 'Standard'
+      phone: '', address: '', zipCode: '', city: '', paymentTermsDays: 14, currency: 'NOK', vatHandling: 'Standard', ehfEnabled: false, defaultAccount: ''
     });
     setIsSheetOpen(true);
   }, [form]);
@@ -79,6 +91,34 @@ export function ContactList() {
     window.addEventListener('openCreateContact', handler);
     return () => window.removeEventListener('openCreateContact', handler);
   }, [openCreateSheet]);
+
+  const orgWatch = form.watch('orgNumber');
+  
+  useEffect(() => {
+    if (!orgWatch) return;
+    const cleanOrg = orgWatch.replace(/\D/g, '');
+    if (cleanOrg.length === 9) {
+      const currentName = form.getValues('name');
+      if (!currentName || currentName.trim() === '') {
+        fetch(`https://data.brreg.no/enhetsregisteret/api/enheter/${cleanOrg}`)
+          .then(res => res.json())
+          .then(data => {
+            if (data && data.navn) {
+              form.setValue('name', data.navn);
+              if (data.forretningsadresse) {
+                form.setValue('address', data.forretningsadresse.adresse?.[0] || '');
+                form.setValue('zipCode', data.forretningsadresse.postnummer || '');
+                form.setValue('city', data.forretningsadresse.poststed || '');
+              }
+              if (data.organisasjonsform?.kode === 'AS') {
+                form.setValue('ehfEnabled', true);
+              }
+            }
+          })
+          .catch(err => console.error("Brreg fetch error:", err));
+      }
+    }
+  }, [orgWatch, form]);
 
   const openEditSheet = (contact: Contact) => {
     setSelectedContact(contact);
@@ -96,19 +136,33 @@ export function ContactList() {
     }
   };
 
+  const filteredContacts = contacts?.filter(c => 
+    c.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    (c.orgNumber && c.orgNumber.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    (c.contactPerson && c.contactPerson.toLowerCase().includes(searchTerm.toLowerCase()))
+  ) || [];
+
   if (isLoading) return <div className="p-8 text-center animate-pulse text-muted-foreground">Laster kontakter...</div>;
 
   return (
-    <div className="flex flex-col h-full relative">
+    <div className="flex flex-col h-full relative mt-4">
+      <div className="px-1 mb-4">
+        <Input 
+          placeholder="Søk etter kunde, org.nr eller kontaktperson..." 
+          className="w-full h-12"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+      </div>
       <div className="flex-1 overflow-y-auto pb-24 space-y-3 px-1">
-        {contacts?.length === 0 ? (
+        {filteredContacts.length === 0 ? (
           <div className="text-center py-12 text-muted-foreground flex flex-col items-center">
             <Building2 className="w-12 h-12 mb-4 opacity-20" />
             <p>Ingen kontakter funnet i hovedboken.</p>
             <p className="text-sm mt-2">Trykk på pluss-knappen for å legge til kunder eller leverandører.</p>
           </div>
         ) : (
-          contacts?.map((contact) => (
+          filteredContacts.map((contact) => (
             <Card 
               key={contact.id} 
               className="cursor-pointer hover:border-primary/50 transition-colors"
@@ -127,7 +181,12 @@ export function ContactList() {
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center justify-end shrink-0">
+                  <div className="flex items-center justify-end shrink-0 gap-2">
+                    {contact.ehfEnabled && (
+                      <span className="text-[10px] px-2 py-0.5 rounded-full font-medium uppercase tracking-wider bg-blue-500/10 text-blue-600 border border-blue-500/20">
+                        EHF
+                      </span>
+                    )}
                     <span className="text-[10px] px-2 py-0.5 rounded-full font-medium uppercase tracking-wider bg-muted text-muted-foreground">
                       {contact.relationType}
                     </span>
@@ -142,10 +201,10 @@ export function ContactList() {
 
       <SidePanelForm
         open={isSheetOpen}
-        onOpenChange={setIsSheetOpen}
+        onOpenChange={handleOpenChange}
         title={selectedContact ? 'Rediger kontakt' : 'Ny kontakt'}
         description="Skjema for å administrere CRM kontakt"
-        onCancel={() => setIsSheetOpen(false)}
+        onCancel={() => handleOpenChange(false)}
         onSubmit={form.handleSubmit(onSubmit)}
         isSubmitting={createMutation.isPending || updateMutation.isPending}
         submitText="Lagre Kontakt"
@@ -172,7 +231,7 @@ export function ContactList() {
               <div className="grid grid-cols-2 gap-4">
                 <FormField control={form.control} name="relationType" render={({ field }) => (
                   <FormItem className="flex flex-col justify-end space-y-0 gap-2"><FormLabel>Type relasjon</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl><SelectTrigger><SelectValue placeholder="Velg" /></SelectTrigger></FormControl>
                       <SelectContent>
                         <SelectItem value="Kunde">Kunde</SelectItem>
@@ -183,7 +242,22 @@ export function ContactList() {
                   <FormMessage /></FormItem>
                 )} />
                 <FormField control={form.control} name="orgNumber" render={({ field }) => (
-                  <FormItem className="flex flex-col justify-end space-y-0 gap-2"><FormLabel>Org.nummer</FormLabel><FormControl><Input placeholder="9-siffer" {...field} /></FormControl><FormMessage /></FormItem>
+                  <FormItem className="flex flex-col justify-end space-y-0 gap-2">
+                    <FormLabel>Org.nummer</FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="XXX XXX XXX" 
+                        {...field} 
+                        maxLength={11}
+                        onChange={(e) => {
+                          const val = e.target.value.replace(/\D/g, '');
+                          const formatted = val.replace(/(\d{3})(?=\n|$|\d)/g, '$1 ').trim();
+                          field.onChange(formatted);
+                        }}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
                 )} />
               </div>
               <FormField control={form.control} name="contactPerson" render={({ field }) => (
@@ -204,20 +278,48 @@ export function ContactList() {
               <FormField control={form.control} name="address" render={({ field }) => (
                 <FormItem><FormLabel>Adresse</FormLabel><FormControl><Input placeholder="Storgata 1" {...field} /></FormControl><FormMessage /></FormItem>
               )} />
-              <FormField control={form.control} name="zipCity" render={({ field }) => (
-                <FormItem><FormLabel>Postnr & Sted</FormLabel><FormControl><Input placeholder="0101 Oslo" {...field} /></FormControl><FormMessage /></FormItem>
-              )} />
+              <div className="grid grid-cols-[1fr_2fr] gap-4">
+                <FormField control={form.control} name="zipCode" render={({ field }) => (
+                  <FormItem><FormLabel>Postnummer</FormLabel><FormControl><Input placeholder="0101" maxLength={4} {...field} /></FormControl><FormMessage /></FormItem>
+                )} />
+                <FormField control={form.control} name="city" render={({ field }) => (
+                  <FormItem><FormLabel>Poststed</FormLabel><FormControl><Input placeholder="Oslo" {...field} /></FormControl><FormMessage /></FormItem>
+                )} />
+              </div>
             </div>
 
             <div className="space-y-4 pt-4 border-t">
               <h4 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Økonomiske Betingelser</h4>
+              
+              {form.watch('relationType') === 'Leverandør' && (
+                <FormField control={form.control} name="defaultAccount" render={({ field }) => (
+                  <FormItem className="mb-4 flex flex-col justify-end space-y-0 gap-2">
+                    <FormLabel>Standard Kostnadskonto (Regnskap)</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value || ""}>
+                      <FormControl><SelectTrigger><SelectValue placeholder="Velg konto" /></SelectTrigger></FormControl>
+                      <SelectContent>
+                        <SelectItem value="4000">4000 - Varekjøp, høy sats</SelectItem>
+                        <SelectItem value="4300">4300 - Innkjøp av varer for videresalg, høy sats</SelectItem>
+                        <SelectItem value="6540">6540 - Inventar</SelectItem>
+                        <SelectItem value="6800">6800 - Kontorrekvisita</SelectItem>
+                        <SelectItem value="6900">6900 - Telefon og portokostnader</SelectItem>
+                        <SelectItem value="7140">7140 - Reisekostnad, ikke opplysningspliktig</SelectItem>
+                        <SelectItem value="7320">7320 - Reklamekostnad</SelectItem>
+                        <SelectItem value="7770">7770 - Bank og kortgebyrer</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+              )}
+
               <div className="grid grid-cols-2 gap-4">
                 <FormField control={form.control} name="paymentTermsDays" render={({ field }) => (
                   <FormItem className="flex flex-col justify-end space-y-0 gap-2"><FormLabel>Kredittid (Dager)</FormLabel><FormControl><Input type="number" {...field} onChange={e => field.onChange(Number(e.target.value))} /></FormControl><FormMessage /></FormItem>
                 )} />
                 <FormField control={form.control} name="currency" render={({ field }) => (
                   <FormItem className="flex flex-col justify-end space-y-0 gap-2"><FormLabel>Valuta</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl><SelectTrigger><SelectValue placeholder="Velg" /></SelectTrigger></FormControl>
                       <SelectContent><SelectItem value="NOK">NOK</SelectItem><SelectItem value="EUR">EUR</SelectItem><SelectItem value="USD">USD</SelectItem></SelectContent>
                     </Select>

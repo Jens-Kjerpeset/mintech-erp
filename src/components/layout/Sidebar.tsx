@@ -40,7 +40,10 @@ export function Sidebar({ className }: { className?: string }) {
       </nav>
       
       <div className="mt-auto px-4 py-4 border-t text-xs text-muted-foreground">
-        Kottet OS
+        Designet og utviklet av{" "}
+        <a href="https://kjerpeset.no" target="_blank" rel="noopener noreferrer" className="hover:text-foreground hover:underline transition-colors">
+          Jens Kjerpeset
+        </a>
       </div>
     </aside>
   );

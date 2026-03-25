@@ -46,7 +46,7 @@ export function SidePanelForm({
   
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className={`w-[88vw] ${maxWidthClass} p-0 flex flex-col h-full border-l bg-background shadow-2xl overflow-y-auto`}>
+      <SheetContent side="right" className={`w-full ${maxWidthClass} p-0 flex flex-col h-full border-l bg-background shadow-2xl overflow-y-auto`}>
         <SheetHeader className="px-6 sm:px-8 py-5 sm:py-6 shrink-0 border-b">
           <button autoFocus className="sr-only" aria-hidden="true">Fokus-felle</button>
           <SheetTitle className="text-xl sm:text-2xl flex items-center gap-2 leading-tight">

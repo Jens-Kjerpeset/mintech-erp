@@ -1,10 +1,10 @@
+import { useEffect } from 'react';
 import { useForm, useFieldArray, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { invoiceSchema, type Invoice } from '@/types/schema';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent } from '@/components/ui/card';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { Plus, Trash2 } from 'lucide-react';
@@ -16,7 +16,7 @@ import { formatCurrency } from '@/lib/formatting';
 
 type InvoiceFormValues = z.infer<typeof invoiceSchema>;
 
-export function InvoiceBuilder({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
+export function InvoiceBuilder({ open, onOpenChange, invoice }: { open: boolean; onOpenChange: (open: boolean) => void; invoice?: Invoice }) {
   const queryClient = useQueryClient();
 
   const { data: contacts } = useQuery({ queryKey: ['contacts'], queryFn: api.contacts.list });
@@ -45,6 +45,31 @@ export function InvoiceBuilder({ open, onOpenChange }: { open: boolean; onOpenCh
   });
   const watchedItems = useWatch({ control: form.control, name: 'items' }) || fields;
 
+  useEffect(() => {
+    if (open && invoice) {
+      form.reset({
+        clientName: invoice.clientName,
+        clientEmail: invoice.clientEmail || '',
+        issueDate: invoice.issueDate,
+        dueDate: invoice.dueDate,
+        items: invoice.items,
+        taxRate: invoice.taxRate,
+        status: invoice.status,
+        notes: invoice.notes
+      });
+    } else if (open && !invoice) {
+      form.reset({
+        clientName: '',
+        clientEmail: '',
+        issueDate: new Date().toISOString(),
+        dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
+        items: [{ description: '', quantity: 1, price: 0 }],
+        taxRate: 0,
+        status: 'draft',
+      });
+    }
+  }, [open, invoice, form]);
+
   const createMutation = useMutation({
     mutationFn: async (data: Invoice) => {
       // Inventory depletion logic
@@ -59,6 +84,9 @@ export function InvoiceBuilder({ open, onOpenChange }: { open: boolean; onOpenCh
             }
           }
         }
+      }
+      if (invoice?.id) {
+        return api.invoices.update(invoice.id, data);
       }
       return api.invoices.create(data);
     },
@@ -106,13 +134,13 @@ export function InvoiceBuilder({ open, onOpenChange }: { open: boolean; onOpenCh
     <SidePanelForm
       open={open}
       onOpenChange={onOpenChange}
-      title="Opprett Faktura"
-      description="Fyll ut detaljene for å generere en faktura."
+      title={invoice?.id ? "Endre Faktura" : "Opprett Faktura"}
+      description={invoice?.id ? "Oppdater detaljene for valgt faktura." : "Fyll ut detaljene for å generere en faktura."}
       // @ts-expect-error - React-hook-form submit handler mismatch edge case
       onSubmit={form.handleSubmit(onSubmit)}
       onCancel={() => onOpenChange(false)}
       isSubmitting={createMutation.isPending}
-      submitText="Opprett Faktura"
+      submitText={invoice?.id ? "Lagre endringer" : "Opprett Faktura"}
     >
       <div className="space-y-8">
         <div className="grid grid-cols-1 gap-6">
@@ -148,44 +176,68 @@ export function InvoiceBuilder({ open, onOpenChange }: { open: boolean; onOpenCh
             </Button>
           </div>
 
+          <div className="hidden sm:grid grid-cols-[1fr_80px_100px_80px_40px] gap-3 px-2 text-sm font-semibold text-muted-foreground mb-2">
+            <div>Tjeneste / Produkt</div>
+            <div>Antall</div>
+            <div>Pris Ex Mva</div>
+            <div>Mva %</div>
+            <div></div>
+          </div>
+
           {fields.map((field, index) => (
-            <Card key={field.id} className="pt-6 relative group">
-              <Button 
-                type="button" 
-                variant="ghost" 
-                size="icon" 
-                className="absolute right-2 top-2 h-8 w-8 text-muted-foreground hover:text-destructive opacity-50 group-hover:opacity-100 transition-opacity" 
-                onClick={() => remove(index)}
-              >
-                <Trash2 className="w-4 h-4" />
-              </Button>
-              <CardContent className="flex flex-col sm:flex-row gap-4 items-start sm:items-end">
-                <div className="flex-1 space-y-2 w-full min-w-[200px]">
-                  <Label>Tjeneste / Produkt (Fra Varelager)</Label>
-                  <Select onValueChange={(val: string | null) => handleProductSelect(index, val)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Velg fra varelager..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {products?.map(p => (
-                        <SelectItem key={p.id} value={p.id!}>
-                          {p.name} - kr {p.salesPriceIncVat}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <input type="hidden" {...form.register(`items.${index}.description`)} />
-                </div>
-                <div className="w-full sm:w-24 space-y-2 shrink-0">
-                  <Label>Antall</Label>
-                  <Input type="number" step="1" {...form.register(`items.${index}.quantity`, { valueAsNumber: true })} />
-                </div>
-                <div className="w-full sm:w-32 space-y-2 shrink-0">
-                  <Label>Enhetspris Ex Mva</Label>
-                  <Input type="number" step="0.01" readOnly disabled className="bg-muted/50" {...form.register(`items.${index}.price`, { valueAsNumber: true })} />
-                </div>
-              </CardContent>
-            </Card>
+            <div key={field.id} className="grid grid-cols-1 sm:grid-cols-[1fr_80px_100px_80px_40px] gap-3 items-end sm:items-center bg-card p-3 sm:p-2 sm:bg-transparent rounded-lg border sm:border-none focus-within:ring-1 focus-within:ring-ring">
+              <div className="flex-1 w-full min-w-[200px]">
+                <Label className="sm:hidden mb-2 block">Produkt</Label>
+                <Select onValueChange={(val: string | null) => handleProductSelect(index, val)}>
+                  <SelectTrigger className="h-10">
+                    <SelectValue placeholder="Velg fra varelager..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {products?.map(p => (
+                      <SelectItem key={p.id} value={p.id!}>
+                        {p.name} - kr {p.salesPriceIncVat}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <input type="hidden" {...form.register(`items.${index}.description`)} />
+              </div>
+              <div className="w-full sm:w-auto">
+                <Label className="sm:hidden mb-2 block">Antall</Label>
+                <Input className="h-10" type="number" step="1" {...form.register(`items.${index}.quantity`, { valueAsNumber: true })} />
+              </div>
+              <div className="w-full sm:w-auto">
+                <Label className="sm:hidden mb-2 block">Pris Ex Mva</Label>
+                <Input className="h-10 bg-muted/50" type="number" step="0.01" readOnly disabled {...form.register(`items.${index}.price`, { valueAsNumber: true })} />
+              </div>
+              <div className="w-full sm:w-auto">
+                <Label className="sm:hidden mb-2 block">Mva %</Label>
+                <Select 
+                  value={String(form.watch(`items.${index}.vatRate`) ?? 25)}
+                  onValueChange={(val: string | null) => val && form.setValue(`items.${index}.vatRate`, parseInt(val, 10))}
+                >
+                  <SelectTrigger className="h-10">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="25">25%</SelectItem>
+                    <SelectItem value="15">15%</SelectItem>
+                    <SelectItem value="0">0%</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex justify-end sm:justify-center mt-2 sm:mt-0">
+                <Button 
+                  type="button" 
+                  variant="ghost" 
+                  size="icon" 
+                  className="h-10 w-10 text-muted-foreground hover:text-destructive hover:bg-destructive/10" 
+                  onClick={() => remove(index)}
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
           ))}
           {form.formState.errors.items && <p className="text-destructive text-sm">{form.formState.errors.items.message}</p>}
         </div>
@@ -195,17 +247,23 @@ export function InvoiceBuilder({ open, onOpenChange }: { open: boolean; onOpenCh
             <div className="space-y-2">
               <Label htmlFor="status">Fakturastatus</Label>
               <Select 
-                defaultValue={form.getValues('status')} 
+                value={form.watch('status')} 
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 onValueChange={(val) => form.setValue('status', val as any)}
               >
                 <SelectTrigger>
-                  <SelectValue />
+                  <SelectValue placeholder="Velg status">
+                    {form.watch('status') === 'draft' ? 'Utkast' : 
+                     form.watch('status') === 'sent' ? 'Sendt' : 
+                     form.watch('status') === 'paid' ? 'Betalt' : 
+                     form.watch('status') === 'overdue' ? 'Forfalt' : 'Velg status'}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="draft">Utkast (Sendes ikke)</SelectItem>
-                  <SelectItem value="sent">Sendt (Trekker fra varelager)</SelectItem>
-                  <SelectItem value="paid">Betalt (Trekker fra varelager)</SelectItem>
+                  <SelectItem value="draft">Utkast</SelectItem>
+                  <SelectItem value="sent">Sendt</SelectItem>
+                  <SelectItem value="paid">Betalt</SelectItem>
+                  <SelectItem value="overdue">Forfalt</SelectItem>
                 </SelectContent>
               </Select>
             </div>

@@ -1,12 +1,16 @@
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import type { Invoice, InvoiceItem } from '@/types/schema';
+import { useSearchParams } from 'react-router-dom';
+import { useEffect } from 'react';
 import { RecordItem } from '@/components/ui/record-item';
-import { FileText, ExternalLink, Loader2 } from 'lucide-react';
+import { FileText, ExternalLink, Loader2, Edit3, DollarSign, Bell, Mail, Database } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { pdf } from '@react-pdf/renderer';
 import { InvoiceDocument } from './InvoicePDF';
 import { formatCurrency, formatDate } from '@/lib/formatting';
@@ -18,7 +22,15 @@ const STATUS_LABELS: Record<string, string> = {
   overdue: 'FORFALT',
 };
 
-export function InvoiceList() {
+export function InvoiceList({ onEdit }: { onEdit?: (invoice: Invoice) => void }) {
+  const queryClient = useQueryClient();
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string, data: Partial<Invoice> }) => api.invoices.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['invoices'] });
+    }
+  });
+
   const { data: invoices, isLoading } = useQuery({
     queryKey: ['invoices'],
     queryFn: () => api.invoices.list(),
@@ -26,6 +38,18 @@ export function InvoiceList() {
 
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState(searchParams.get("filter") || "alle");
+
+  useEffect(() => {
+    const filter = searchParams.get("filter");
+    if (filter) {
+      setStatusFilter(filter);
+      searchParams.delete("filter");
+      setSearchParams(searchParams, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
   if (isLoading) {
     return <div className="p-4 text-center text-muted-foreground animate-pulse">Loading invoices...</div>;
@@ -46,7 +70,14 @@ export function InvoiceList() {
     return grouped;
   };
 
-  const groupedInvoices = groupInvoicesByMonth(invoices);
+  const filteredInvoices = invoices.filter(invoice => {
+    const matchesSearch = invoice.clientName.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                          (invoice.clientEmail && invoice.clientEmail.toLowerCase().includes(searchTerm.toLowerCase()));
+    const matchesStatus = statusFilter === "alle" || invoice.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
+
+  const groupedInvoices = groupInvoicesByMonth(filteredInvoices);
   const monthKeys = Object.keys(groupedInvoices).sort((a, b) => b.localeCompare(a));
   
   const currentMonthKey = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`;
@@ -60,6 +91,28 @@ export function InvoiceList() {
 
   return (
     <div className="space-y-6 mt-6">
+      {/* Search and Filter */}
+      <div className="flex flex-col sm:flex-row gap-4 mb-2">
+        <Input 
+          placeholder="Søk etter kunde eller e-post..." 
+          className="flex-1"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+        <Select value={statusFilter} onValueChange={(val) => setStatusFilter(val || "alle")}>
+          <SelectTrigger className="w-full sm:w-[200px]" aria-label="Filtrer på status">
+            <SelectValue placeholder="Alle statuser" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="alle">Alle statuser</SelectItem>
+            <SelectItem value="draft">Utkast</SelectItem>
+            <SelectItem value="sent">Sendt</SelectItem>
+            <SelectItem value="paid">Betalt</SelectItem>
+            <SelectItem value="overdue">Forfalt</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
       <Accordion defaultValue={[currentMonthKey]} className="w-full space-y-4">
         {monthKeys.map((monthKey) => (
           <AccordionItem key={monthKey} value={monthKey} className="border bg-card rounded-xl px-4 shadow-sm">
@@ -79,7 +132,7 @@ export function InvoiceList() {
       </Accordion>
 
       <Sheet open={!!selectedInvoice} onOpenChange={(open) => !open && setSelectedInvoice(null)}>
-        <SheetContent className="w-[88vw] sm:max-w-xl p-0 flex flex-col h-full border-l bg-background shadow-2xl">
+        <SheetContent side="right" className="w-full sm:max-w-xl p-0 flex flex-col h-full border-l bg-background shadow-2xl">
           <div tabIndex={0} autoFocus className="outline-none w-0 h-0 absolute top-0" />
           {selectedInvoice && (
             <>
@@ -132,10 +185,24 @@ export function InvoiceList() {
                     <span className="text-muted-foreground">Delsum:</span>
                     <span>{formatCurrency(selectedInvoice.subtotal)}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Mva ({selectedInvoice.taxRate}%):</span>
-                    <span>{formatCurrency(selectedInvoice.subtotal * (selectedInvoice.taxRate / 100))}</span>
-                  </div>
+                  
+                  {Object.entries(
+                    selectedInvoice.items.reduce((acc: Record<number, number>, item) => {
+                      const q = item.quantity || 0;
+                      const p = item.price || 0;
+                      const r = item.vatRate || 0;
+                      if (r > 0) {
+                        acc[r] = (acc[r] || 0) + (q * p * (r / 100));
+                      }
+                      return acc;
+                    }, {})
+                  ).map(([rate, amount]) => (
+                    <div key={rate} className="flex justify-between">
+                      <span className="text-muted-foreground">Mva ({rate}%):</span>
+                      <span>{formatCurrency(amount as number)}</span>
+                    </div>
+                  ))}
+
                   <div className="flex justify-between text-base font-bold pt-2 border-t">
                     <span>Totalt (NOK):</span>
                     <span>{formatCurrency(selectedInvoice.total)}</span>
@@ -152,9 +219,96 @@ export function InvoiceList() {
                 )}
               </div>
 
-              <div className="mt-auto px-6 sm:px-8 py-4 border-t bg-background shrink-0 z-10 w-full">
+              <div className="mt-auto px-6 sm:px-8 py-4 border-t bg-background shrink-0 z-10 w-full flex flex-col gap-3">
+                 {selectedInvoice.status === 'draft' && (
+                   <div className="flex flex-col gap-3">
+                     <div className="grid grid-cols-2 gap-3">
+                       <Button 
+                         className="h-12 bg-blue-600 hover:bg-blue-700 text-white"
+                         disabled={updateMutation.isPending}
+                         onClick={() => {
+                           updateMutation.mutate({ id: selectedInvoice.id!, data: { status: 'sent' } });
+                           setSelectedInvoice({ ...selectedInvoice, status: 'sent' });
+                         }}
+                       >
+                         <Mail className="w-4 h-4 mr-2" /> E-post
+                       </Button>
+                       <Button 
+                         className="h-12 bg-indigo-600 hover:bg-indigo-700 text-white"
+                         disabled={updateMutation.isPending}
+                         onClick={() => {
+                           updateMutation.mutate({ id: selectedInvoice.id!, data: { status: 'sent' } });
+                           setSelectedInvoice({ ...selectedInvoice, status: 'sent' });
+                         }}
+                       >
+                         <Database className="w-4 h-4 mr-2" /> EHF
+                       </Button>
+                     </div>
+                     <Button 
+                       variant="outline" 
+                       className="w-full h-12"
+                       onClick={() => {
+                         if (onEdit) {
+                           setSelectedInvoice(null);
+                           setTimeout(() => onEdit(selectedInvoice), 150);
+                         }
+                       }}
+                     >
+                       <Edit3 className="w-4 h-4 mr-2" /> Endre Utkast
+                     </Button>
+                   </div>
+                 )}
+                 {selectedInvoice.status === 'sent' && (
+                   <div className="flex gap-3">
+                     <Button 
+                       variant="outline" 
+                       className="flex-1 h-12"
+                       disabled={updateMutation.isPending}
+                       onClick={() => {
+                         const currentItems = selectedInvoice.items;
+                         const hasDunning = currentItems.some(i => i.description.includes('Purregebyr'));
+                         
+                         if (!hasDunning) {
+                           const dunningFee = 35.00;
+                           const dunningItem: InvoiceItem = {
+                             id: crypto.randomUUID(),
+                             description: 'Purregebyr',
+                             quantity: 1,
+                             price: dunningFee,
+                             vatRate: 0
+                           };
+                           const newItems = [...currentItems, dunningItem];
+                           const newSubtotal = selectedInvoice.subtotal + dunningFee;
+                           const newTotal = selectedInvoice.total + dunningFee;
+                           
+                           updateMutation.mutate({ 
+                             id: selectedInvoice.id!, 
+                             data: { status: 'overdue', items: newItems, subtotal: newSubtotal, total: newTotal } 
+                           });
+                           setSelectedInvoice({ ...selectedInvoice, status: 'overdue', items: newItems, subtotal: newSubtotal, total: newTotal });
+                         } else {
+                           updateMutation.mutate({ id: selectedInvoice.id!, data: { status: 'overdue' } });
+                           setSelectedInvoice({ ...selectedInvoice, status: 'overdue' });
+                         }
+                       }}
+                     >
+                       <Bell className="w-4 h-4 mr-2 hidden sm:block" /> Send Purring
+                     </Button>
+                     <Button 
+                       className="flex-1 h-12 bg-green-600 hover:bg-green-700 text-white"
+                       disabled={updateMutation.isPending}
+                       onClick={() => {
+                         updateMutation.mutate({ id: selectedInvoice.id!, data: { status: 'paid' } });
+                         setSelectedInvoice({ ...selectedInvoice, status: 'paid' });
+                       }}
+                     >
+                       <DollarSign className="w-4 h-4 mr-2 hidden sm:block" /> Innbetaling
+                     </Button>
+                   </div>
+                 )}
+                 
                  <Button 
-                   className="w-full h-14 text-lg rounded-xl shadow-xl"
+                   className="w-full h-14 text-lg rounded-xl shadow-xl mt-2"
                    disabled={isGeneratingPDF}
                    onClick={async () => {
                      if (!selectedInvoice) return;
@@ -170,12 +324,8 @@ export function InvoiceList() {
                      }
                    }}
                  >
-                   {isGeneratingPDF ? (
-                     <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                   ) : (
-                     <ExternalLink className="w-5 h-5 mr-2" />
-                   )}
-                   {isGeneratingPDF ? 'Genererer PDF...' : 'Vis PDF'}
+                   {isGeneratingPDF ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <ExternalLink className="w-4 h-4 mr-2" />}
+                   {isGeneratingPDF ? 'Laster...' : 'Last ned PDF'}
                  </Button>
               </div>
             </>

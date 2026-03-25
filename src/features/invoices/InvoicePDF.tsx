@@ -37,64 +37,74 @@ export const InvoiceDocument = ({ invoice }: { invoice: Invoice }) => (
       
       <View style={styles.header}>
         <View style={styles.headerLeft}>
-          <Text style={styles.title}>INVOICE</Text>
+          <Text style={styles.title}>FAKTURA</Text>
           <Text style={styles.subtitle}>#{invoice.id?.split('-')[0].toUpperCase()}</Text>
         </View>
         <View style={styles.headerRight}>
-          <Text style={styles.subtitle}>Issue Date: {new Date(invoice.issueDate).toLocaleDateString()}</Text>
-          <Text style={styles.subtitle}>Due Date: {new Date(invoice.dueDate).toLocaleDateString()}</Text>
+          <Text style={styles.subtitle}>Fakturadato: {new Date(invoice.issueDate).toLocaleDateString()}</Text>
+          <Text style={styles.subtitle}>Forfallsdato: {new Date(invoice.dueDate).toLocaleDateString()}</Text>
         </View>
       </View>
 
       <View style={styles.clientSection}>
-        <Text style={styles.clientTitle}>Billed To</Text>
+        <Text style={styles.clientTitle}>Fakturert Til</Text>
         <Text style={styles.clientName}>{invoice.clientName}</Text>
         {invoice.clientEmail && <Text style={styles.subtitle}>{invoice.clientEmail}</Text>}
       </View>
 
       <View style={styles.table}>
         <View style={styles.tableHeader}>
-          <Text style={[styles.colDesc, styles.colHeader]}>Description</Text>
-          <Text style={[styles.colQty, styles.colHeader]}>Qty</Text>
-          <Text style={[styles.colPrice, styles.colHeader]}>Price</Text>
-          <Text style={[styles.colTotal, styles.colHeader]}>Amount</Text>
+          <Text style={[styles.colDesc, styles.colHeader]}>Beskrivelse</Text>
+          <Text style={[styles.colQty, styles.colHeader]}>Antall</Text>
+          <Text style={[styles.colPrice, styles.colHeader]}>Pris</Text>
+          <Text style={[styles.colTotal, styles.colHeader]}>Beløp</Text>
         </View>
 
         {invoice.items.map((item, i) => (
           <View key={i} style={styles.tableRow}>
             <Text style={styles.colDesc}>{item.description}</Text>
             <Text style={styles.colQty}>{item.quantity}</Text>
-            <Text style={styles.colPrice}>${item.price.toFixed(2)}</Text>
-            <Text style={styles.colTotal}>${(item.quantity * item.price).toFixed(2)}</Text>
+            <Text style={styles.colPrice}>{item.price.toFixed(2)} kr</Text>
+            <Text style={styles.colTotal}>{(item.quantity * item.price).toFixed(2)} kr</Text>
           </View>
         ))}
       </View>
 
       <View style={styles.totalsSection}>
         <View style={styles.totalsRow}>
-          <Text>Subtotal:</Text>
-          <Text>${invoice.subtotal.toFixed(2)}</Text>
+          <Text>Delsum:</Text>
+          <Text>{invoice.subtotal.toFixed(2)} kr</Text>
         </View>
-        {invoice.taxRate > 0 && (
-          <View style={styles.totalsRow}>
-            <Text>Tax ({invoice.taxRate}%):</Text>
-            <Text>${(invoice.subtotal * (invoice.taxRate / 100)).toFixed(2)}</Text>
+        {Object.entries(
+          invoice.items.reduce((acc: Record<number, number>, item) => {
+            const q = item.quantity || 0;
+            const p = item.price || 0;
+            const r = item.vatRate || 0;
+            if (r > 0) {
+              acc[r] = (acc[r] || 0) + (q * p * (r / 100));
+            }
+            return acc;
+          }, {})
+        ).map(([rate, amount]) => (
+          <View key={rate} style={styles.totalsRow}>
+            <Text>Mva ({rate}%):</Text>
+            <Text>{(amount as number).toFixed(2)} kr</Text>
           </View>
-        )}
+        ))}
         <View style={[styles.totalsRow, { marginTop: 8, paddingTop: 8, borderTopWidth: 1, borderTopColor: '#000' }]}>
-          <Text style={styles.totalText}>Total Due:</Text>
-          <Text style={styles.totalText}>${invoice.total.toFixed(2)}</Text>
+          <Text style={styles.totalText}>Totalt:</Text>
+          <Text style={styles.totalText}>{invoice.total.toFixed(2)} kr</Text>
         </View>
       </View>
 
       {invoice.notes && (
         <View style={{ marginTop: 40 }}>
-          <Text style={styles.clientTitle}>Notes</Text>
+          <Text style={styles.clientTitle}>Notater</Text>
           <Text style={{ fontSize: 10 }}>{invoice.notes}</Text>
         </View>
       )}
 
-      <Text style={styles.footer}>Thank you for your business!</Text>
+      <Text style={styles.footer}>Takk for at du handler hos oss!</Text>
     </Page>
   </Document>
 );

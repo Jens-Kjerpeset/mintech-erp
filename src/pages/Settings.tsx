@@ -19,7 +19,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
-import { Building2, FileText, Calculator, Blocks, Download, Save, Lock, ArrowLeft, ChevronRight, LogOut } from 'lucide-react';
+import { Building2, FileText, Calculator, Blocks, Download, Save, Lock, ArrowLeft, ChevronRight, LogOut, Palette } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export function Settings() {
@@ -46,6 +46,7 @@ export function Settings() {
 
   const tabInfo = {
     bedrift: { title: "Bedriftsopplysninger", icon: Building2 },
+    utseende: { title: "Utseende & Profil", icon: Palette },
     faktura: { title: "Fakturaoppsett", icon: FileText },
     regnskap: { title: "Regnskap & MVA", icon: Calculator },
     api: { title: "Integrasjoner", icon: Blocks },
@@ -63,6 +64,8 @@ export function Settings() {
       companyName: '',
       orgNumber: '',
       companyAddress: '',
+      companyZipCode: '',
+      companyCity: '',
       bankAccount: '',
       iban: '',
       swift: '',
@@ -184,47 +187,7 @@ export function Settings() {
         )}
       </header>
 
-      {/* User Profile Block */}
-      <div className={cn("p-4 bg-card border rounded-xl shadow-sm", showMobileMenu ? "flex flex-col gap-4" : "hidden sm:flex flex-col gap-4")}>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="size-12 rounded-full bg-foreground flex items-center justify-center text-background font-bold text-lg shrink-0">
-              MH
-            </div>
-            <div className="flex flex-col min-w-0">
-              <p className="font-semibold text-base leading-tight truncate">Mina Haugen</p>
-              <p className="text-sm text-muted-foreground truncate">mina@mintech.no</p>
-            </div>
-          </div>
-          <Button variant="outline" size="sm" className="hidden sm:flex gap-2" onClick={() => alert("Logg inn / ut funksjonalitet kommer senere.")}>
-            <LogOut className="size-4" /> Logg ut
-          </Button>
-          <Button variant="outline" size="icon" className="sm:hidden shrink-0" onClick={() => alert("Logg inn / ut funksjonalitet kommer senere.")}>
-            <LogOut className="size-4" />
-          </Button>
-        </div>
-        
-        {/* Themes Section */}
-        <div className="pt-4 border-t flex flex-col gap-3">
-          <p className="text-sm font-medium">Themes (Utseende)</p>
-          <div className="flex items-center gap-3">
-            {themes.map((t) => (
-              <button
-                key={t.id}
-                onClick={() => setTheme(t.id)}
-                className={cn(
-                  "size-8 border shadow-sm transition-all focus:outline-none focus-visible:ring-2 ring-primary ring-offset-background",
-                  t.color,
-                  t.shape,
-                  selectedTheme === t.id ? "ring-2 ring-offset-2 border-primary/20 scale-110" : "hover:scale-105"
-                )}
-                title={`Velg ${t.id} tema`}
-                aria-label={`Velg ${t.id} tema`}
-              />
-            ))}
-          </div>
-        </div>
-      </div>
+
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -236,6 +199,10 @@ export function Settings() {
               <div className="sm:hidden flex flex-col gap-2 mb-6 animate-in fade-in slide-in-from-left-4 duration-300">
                 <Button variant="outline" type="button" className="justify-between h-14 bg-card hover:bg-muted" onClick={() => { setActiveTab("bedrift"); setShowMobileMenu(false); }}>
                   <div className="flex items-center"><Building2 className="w-5 h-5 mr-3 text-primary" /> Bedriftsopplysninger</div>
+                  <ChevronRight className="w-4 h-4 opacity-50" />
+                </Button>
+                <Button variant="outline" type="button" className="justify-between h-14 bg-card hover:bg-muted" onClick={() => { setActiveTab("utseende"); setShowMobileMenu(false); }}>
+                  <div className="flex items-center"><Palette className="w-5 h-5 mr-3 text-primary" /> Utseende & Profil</div>
                   <ChevronRight className="w-4 h-4 opacity-50" />
                 </Button>
                 <Button variant="outline" type="button" className="justify-between h-14 bg-card hover:bg-muted" onClick={() => { setActiveTab("faktura"); setShowMobileMenu(false); }}>
@@ -258,10 +225,14 @@ export function Settings() {
             )}
 
             {/* Desktop View: Horizontal Tabs */}
-            <TabsList className="hidden sm:flex w-full justify-start h-auto bg-transparent border-b rounded-none px-0 pb-px mb-6 flex-wrap">
+            <TabsList className="hidden sm:flex w-full justify-start h-auto bg-transparent border-b rounded-none px-0 pb-px mb-6 overflow-x-auto whitespace-nowrap [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
               <TabsTrigger value="bedrift" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-2">
                 <Building2 className="w-4 h-4 mr-2" />
                 Bedriftsopplysninger
+              </TabsTrigger>
+              <TabsTrigger value="utseende" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-2">
+                <Palette className="w-4 h-4 mr-2" />
+                Utseende & Profil
               </TabsTrigger>
               <TabsTrigger value="faktura" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-2">
                 <FileText className="w-4 h-4 mr-2" />
@@ -311,11 +282,27 @@ export function Settings() {
                   )} />
                   <FormField control={form.control} name="companyAddress" render={({ field }) => (
                     <FormItem className="flex flex-col gap-2 space-y-0">
-                      <FormLabel>Bedriftsadresse (Gate, Postnr, Sted)</FormLabel>
+                      <FormLabel>Gateadresse</FormLabel>
                       <FormControl><Input {...field} /></FormControl>
                       <FormMessage />
                     </FormItem>
                   )} />
+                  <div className="grid grid-cols-[1fr_2fr] gap-4">
+                    <FormField control={form.control} name="companyZipCode" render={({ field }) => (
+                      <FormItem className="flex flex-col gap-2 space-y-0">
+                        <FormLabel>Postnummer</FormLabel>
+                        <FormControl><Input {...field} /></FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                    <FormField control={form.control} name="companyCity" render={({ field }) => (
+                      <FormItem className="flex flex-col gap-2 space-y-0">
+                        <FormLabel>Poststed</FormLabel>
+                        <FormControl><Input {...field} /></FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                  </div>
                 </CardContent>
               </Card>
 
@@ -357,6 +344,55 @@ export function Settings() {
                         <FormMessage />
                       </FormItem>
                     )} />
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* NEW TAB: UTSEENDE & PROFIL */}
+            <TabsContent value="utseende" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Utseende & Profil</CardTitle>
+                  <CardDescription>Skreddersy farger og applikasjonens formverk.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="size-12 rounded-full bg-foreground flex items-center justify-center text-background font-bold text-lg shrink-0">
+                        MH
+                      </div>
+                      <div className="flex flex-col min-w-0">
+                        <p className="font-semibold text-base leading-tight truncate">Mina Haugen</p>
+                        <p className="text-sm text-muted-foreground truncate">mina@mintech.no</p>
+                      </div>
+                    </div>
+                    <Button variant="outline" size="sm" type="button" className="hidden sm:flex gap-2" onClick={() => alert("Logg inn / ut funksjonalitet kommer senere.")}>
+                      <LogOut className="size-4" /> Logg ut
+                    </Button>
+                    <Button variant="outline" size="icon" type="button" className="sm:hidden shrink-0" onClick={() => alert("Logg inn / ut funksjonalitet kommer senere.")}>
+                      <LogOut className="size-4" />
+                    </Button>
+                  </div>
+                  
+                  <div className="pt-4 border-t flex flex-col gap-3">
+                    <p className="text-sm font-medium">Tema-akselerator</p>
+                    <div className="flex items-center gap-3">
+                      {themes.map((t) => (
+                        <button
+                          key={t.id}
+                          onClick={(e) => { e.preventDefault(); setTheme(t.id); }}
+                          className={cn(
+                            "size-8 border shadow-sm transition-all focus:outline-none focus-visible:ring-2 ring-primary ring-offset-background",
+                            t.color,
+                            t.shape,
+                            selectedTheme === t.id ? "ring-2 ring-offset-2 border-primary/20 scale-110" : "hover:scale-105"
+                          )}
+                          title={`Velg ${t.id} tema`}
+                          aria-label={`Velg ${t.id} tema`}
+                        />
+                      ))}
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -436,8 +472,8 @@ export function Settings() {
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl><SelectTrigger className="w-full sm:w-1/2"><SelectValue placeholder="Velg" /></SelectTrigger></FormControl>
                           <SelectContent>
-                            <SelectItem value="ExVat">Ekskl. mva</SelectItem>
-                            <SelectItem value="IncVat">Inkl. mva</SelectItem>
+                            <SelectItem value="ExVat">Eks. MVA</SelectItem>
+                            <SelectItem value="IncVat">Inkl. MVA</SelectItem>
                           </SelectContent>
                       </Select>
                       <FormMessage />
@@ -483,7 +519,7 @@ export function Settings() {
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl><SelectTrigger className="w-full"><SelectValue placeholder="Velg MVA-termin" /></SelectTrigger></FormControl>
                         <SelectContent>
-                          <SelectItem value="BiMonthly">2. måned / Termin (Annenhver måned)</SelectItem>
+                          <SelectItem value="BiMonthly">Tomånedlig</SelectItem>
                           <SelectItem value="Monthly">Månedlig</SelectItem>
                           <SelectItem value="Annually">Årlig (Småselskap)</SelectItem>
                         </SelectContent>
@@ -497,7 +533,7 @@ export function Settings() {
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl><SelectTrigger className="w-full"><SelectValue placeholder="Velg regnskapsår" /></SelectTrigger></FormControl>
                           <SelectContent>
-                            <SelectItem value="Calendar">Kalenderår (01.01 - 31.12)</SelectItem>
+                            <SelectItem value="Calendar">Kalenderår</SelectItem>
                             <SelectItem value="Split">Avvikende Regnskapsår</SelectItem>
                           </SelectContent>
                       </Select>
@@ -670,6 +706,14 @@ export function Settings() {
 
         </form>
       </Form>
+
+      {/* Mobile Credits Footer */}
+      <div className="sm:hidden text-center text-xs text-muted-foreground pt-8 pb-4">
+        Designet og utviklet av{" "}
+        <a href="https://kjerpeset.no" target="_blank" rel="noopener noreferrer" className="hover:text-foreground hover:underline transition-colors">
+          Jens Kjerpeset
+        </a>
+      </div>
     </div>
   );
 }

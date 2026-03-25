@@ -16,6 +16,7 @@ import { formatCurrency } from '@/lib/formatting';
 export function ProductList() {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
   
   const queryClient = useQueryClient();
 
@@ -103,19 +104,33 @@ export function ProductList() {
   const marginGross = salesNet - currentCost;
   const marginPercentage = currentCost > 0 ? (marginGross / salesNet) * 100 : 0;
 
+  const filteredProducts = products?.filter(p => 
+    p.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    (p.sku && p.sku.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    (p.ean && p.ean.toLowerCase().includes(searchTerm.toLowerCase()))
+  ) || [];
+
   if (isLoading) return <div className="p-8 text-center animate-pulse text-muted-foreground">Laster varelager...</div>;
 
   return (
-    <div className="flex flex-col h-full relative">
+    <div className="flex flex-col h-full relative mt-4">
+      <div className="px-1 mb-4">
+        <Input 
+          placeholder="Søk etter vare, SKU eller EAN..." 
+          className="w-full h-12"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+      </div>
       <div className="flex-1 overflow-y-auto pb-24 space-y-3 px-1">
-        {products?.length === 0 ? (
+        {filteredProducts.length === 0 ? (
           <div className="text-center py-12 text-muted-foreground flex flex-col items-center">
             <PackageSearch className="w-12 h-12 mb-4 opacity-20" />
             <p>Ingen varer funnet i systemet.</p>
             <p className="text-sm mt-2">Trykk på pluss-knappen for å legge til produkter eller SKUer.</p>
           </div>
         ) : (
-          products?.map((product) => {
+          filteredProducts.map((product) => {
             const isLowStock = product.stockQuantity <= product.warningLimit;
             return (
               <Card 
@@ -217,7 +232,7 @@ export function ProductList() {
                 <div className="flex flex-col justify-end space-y-0 gap-2">
                   <FormLabel className="text-muted-foreground">Beregnet Avanse (Margin)</FormLabel>
                   <div className="h-10 px-3 py-2 border rounded-md bg-muted/30 font-mono text-sm flex items-center justify-between gap-4 overflow-hidden">
-                    <span className={`shrink-0 ${marginPercentage > 0 ? "text-green-500" : "text-muted-foreground"}`}>
+                    <span className={`shrink-0 ${marginPercentage > 0 ? "text-green-500" : marginPercentage < 0 ? "text-destructive" : "text-muted-foreground"}`}>
                       {marginPercentage.toFixed(1)}%
                     </span>
                     <span className="text-xs text-muted-foreground truncate">{formatCurrency(marginGross)}</span>

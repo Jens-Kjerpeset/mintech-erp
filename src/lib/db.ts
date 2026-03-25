@@ -14,7 +14,7 @@ export class MintechDB extends Dexie {
     this.version(1).stores({
       transactions: '++id, amount, date, type, category, status',
       invoices: '++id, clientName, issueDate, dueDate, status',
-      contacts: '++id, name, relationType, orgNumber',
+      contacts: '++id, name, relationType, orgNumber, contactPerson',
       products: '++id, name, sku, supplierId',
       zreports: '++id, date, status',
       settings: 'id'

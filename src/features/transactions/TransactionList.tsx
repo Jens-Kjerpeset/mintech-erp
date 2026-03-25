@@ -1,8 +1,9 @@
 import { useState, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
-import { Trash2, ShoppingCart, Truck, Wrench, Megaphone, ArrowDownLeft, Store, CreditCard, CircleDollarSign, Receipt, Paperclip, Save } from 'lucide-react';
+import { Trash2, ShoppingCart, Truck, Wrench, Megaphone, ArrowDownLeft, Store, CreditCard, CircleDollarSign, Receipt, Paperclip, Save, Tags } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -43,9 +44,40 @@ export function TransactionList() {
   const queryClient = useQueryClient();
   const [selectedTx, setSelectedTx] = useState<Transaction | null>(null);
   const [draftTx, setDraftTx] = useState<Partial<Transaction> | null>(null);
+  const [amountStr, setAmountStr] = useState("");
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [searchTerm, setSearchTerm] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("alle");
+  const [deleteConfirmType, setDeleteConfirmType] = useState<'single' | 'bulk' | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const isSelectionMode = selectedIds.size > 0;
+
+  const toggleSelect = (id: string) => {
+    const newSet = new Set(selectedIds);
+    if (newSet.has(id)) newSet.delete(id);
+    else newSet.add(id);
+    setSelectedIds(newSet);
+  };
+
+  const deleteMultipleMutation = useMutation({
+    mutationFn: (ids: string[]) => api.transactions.deleteMultiple(ids),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+      setSelectedIds(new Set());
+    }
+  });
+
+  const updateMultipleMutation = useMutation({
+    mutationFn: ({ ids, data }: { ids: string[]; data: Partial<Transaction> }) => api.transactions.updateMultiple(ids, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+      setSelectedIds(new Set());
+    }
+  });
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     
@@ -64,6 +96,17 @@ export function TransactionList() {
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => api.transactions.delete(id),
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey: ['transactions'] });
+      const previousTxs = queryClient.getQueryData<Transaction[]>(['transactions']);
+      if (previousTxs) {
+        queryClient.setQueryData<Transaction[]>(['transactions'], previousTxs.filter(t => t.id !== id));
+      }
+      return { previousTxs };
+    },
+    onError: (_err, _id, context) => {
+      if (context?.previousTxs) queryClient.setQueryData(['transactions'], context.previousTxs);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
       setSelectedTx(null);
@@ -72,9 +115,21 @@ export function TransactionList() {
 
   const updateMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<Transaction> }) => api.transactions.update(id, data),
+    onMutate: async ({ id, data }) => {
+      await queryClient.cancelQueries({ queryKey: ['transactions'] });
+      const previousTxs = queryClient.getQueryData<Transaction[]>(['transactions']);
+      if (previousTxs) {
+        queryClient.setQueryData<Transaction[]>(['transactions'], previousTxs.map(t => t.id === id ? { ...t, ...data } : t));
+      }
+      return { previousTxs };
+    },
+    onError: (_err, _newTx, context) => {
+      if (context?.previousTxs) queryClient.setQueryData(['transactions'], context.previousTxs);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
       setSelectedTx(null);
+      setErrors({});
     },
   });
 
@@ -90,6 +145,16 @@ export function TransactionList() {
 
   const handleSave = () => {
     if (selectedTx?.id && draftTx) {
+      const newErrors: Record<string, string> = {};
+      if (!draftTx.amount || draftTx.amount <= 0) newErrors.amount = "Beløp må være større enn 0";
+      if (!draftTx.category) newErrors.category = "Du må velge en kategori";
+      if (!draftTx.date) newErrors.date = "Dato er påkrevd";
+
+      if (Object.keys(newErrors).length > 0) {
+        setErrors(newErrors);
+        return;
+      }
+      setErrors({});
       updateMutation.mutate({ id: selectedTx.id, data: draftTx });
     }
   };
@@ -105,7 +170,13 @@ export function TransactionList() {
     return grouped;
   };
 
-  const groupedTransactions = groupTransactionsByMonth(transactions);
+  const filteredTransactions = transactions.filter(tx => {
+    const matchesSearch = tx.description?.toLowerCase().includes(searchTerm.toLowerCase()) || tx.category.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = categoryFilter === "alle" || tx.category === categoryFilter;
+    return matchesSearch && matchesCategory;
+  });
+
+  const groupedTransactions = groupTransactionsByMonth(filteredTransactions);
   const monthKeys = Object.keys(groupedTransactions).sort((a, b) => b.localeCompare(a));
   
   const currentMonthKey = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`;
@@ -119,6 +190,27 @@ export function TransactionList() {
 
   return (
     <div className="space-y-6">
+      {/* Search and Filter */}
+      <div className="flex flex-col sm:flex-row gap-4">
+        <Input 
+          placeholder="Søk i transaksjoner..." 
+          className="flex-1"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+        <Select value={categoryFilter} onValueChange={(val) => setCategoryFilter(val || "alle")}>
+          <SelectTrigger className="w-full sm:w-[200px]" aria-label="Filtrer på kategori">
+            <SelectValue placeholder="Alle kategorier" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="alle">Alle kategorier</SelectItem>
+            {CATEGORIES.map(cat => (
+              <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
       <Accordion defaultValue={[currentMonthKey]} className="w-full space-y-4">
         {monthKeys.map((monthKey) => (
           <AccordionItem key={monthKey} value={monthKey} className="border bg-card rounded-xl px-4 shadow-sm">
@@ -133,7 +225,17 @@ export function TransactionList() {
                 <TransactionListItem 
                   key={tx.id} 
                   transaction={tx} 
-                  onClick={() => { setSelectedTx(tx); setDraftTx(tx); }}
+                  isSelected={selectedIds.has(tx.id!)}
+                  isSelectionMode={isSelectionMode}
+                  onToggle={toggleSelect}
+                  onClick={() => { 
+                    setSelectedTx(tx); 
+                    setDraftTx(tx); 
+                    const initialVal = (tx.amount || 0).toString().replace('.', ',');
+                    const parts = initialVal.split(',');
+                    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+                    setAmountStr(parts.join(','));
+                  }}
                 />
               ))}
             </AccordionContent>
@@ -141,8 +243,46 @@ export function TransactionList() {
         ))}
       </Accordion>
 
-      <Sheet open={!!selectedTx} onOpenChange={(open) => !open && setSelectedTx(null)}>
-        <SheetContent side="right" className="w-[88vw] sm:max-w-md p-0 flex flex-col h-full border-l bg-background shadow-2xl">
+      {isSelectionMode && (
+        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 bg-popover border shadow-2xl rounded-full px-6 py-3 flex items-center gap-4 z-[60] animate-in slide-in-from-bottom-5 w-[92%] sm:w-auto max-w-md justify-between">
+          <span className="font-semibold text-sm whitespace-nowrap">{selectedIds.size} valgt</span>
+          <div className="flex gap-1 sm:gap-2">
+            <Button size="sm" variant="outline" className="rounded-full rounded-r-none h-10 border-r-0" onClick={() => setSelectedIds(new Set())}>Avbryt</Button>
+            <Button 
+              size="sm" 
+              className="rounded-none h-10 border-l border-r"
+              disabled={updateMultipleMutation.isPending}
+              onClick={() => {
+                const newCat = prompt("Skriv inn ny kategori for de valgte transaksjonene:");
+                if (newCat) {
+                  updateMultipleMutation.mutate({ ids: Array.from(selectedIds), data: { category: newCat } });
+                }
+              }}
+            >
+              <Tags className="w-4 h-4 mr-1" /> Kategori
+            </Button>
+            <Button 
+              size="sm" 
+              variant="destructive" 
+              className="rounded-full rounded-l-none h-10 flex gap-1 items-center" 
+              disabled={deleteMultipleMutation.isPending}
+              onClick={() => setDeleteConfirmType('bulk')}
+            >
+              <Trash2 className="w-4 h-4 hidden sm:block" /> Slett
+            </Button>
+          </div>
+        </div>
+      )}
+
+      <Sheet open={!!selectedTx} onOpenChange={(open) => {
+        if (!open) {
+          setSelectedTx(null);
+          setAmountStr("");
+          setErrors({});
+          setDeleteConfirmType(null);
+        }
+      }}>
+        <SheetContent side="right" className="w-full sm:max-w-md p-0 flex flex-col h-full border-l bg-background shadow-2xl">
           <div tabIndex={0} autoFocus className="outline-none w-0 h-0 absolute top-0" />
           {selectedTx && draftTx && (
             <>
@@ -182,50 +322,62 @@ export function TransactionList() {
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="flex flex-col justify-end gap-2">
-                      <Label className="text-base text-muted-foreground">Beløp (kr)</Label>
+                      <Label className={`text-base text-muted-foreground ${errors.amount ? 'text-red-500' : ''}`}>Beløp (kr)</Label>
                       <Input 
-                        type="number"
-                        step="0.01"
-                        className="h-12 text-base font-medium font-mono text-ellipsis"
-                        value={draftTx.amount || ''} 
+                        type="text"
+                        inputMode="decimal"
+                        className={`h-12 text-base font-medium font-mono text-ellipsis ${errors.amount ? 'border-red-500' : ''}`}
+                        value={amountStr} 
                         onChange={(e) => {
-                          const amount = parseFloat(e.target.value) || 0;
+                          const val = e.target.value.replace(/[^0-9,]/g, '');
+                          const parts = val.split(',');
+                          parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+                          setAmountStr(parts.join(','));
+                          
+                          const amount = parseFloat(val.replace(',', '.')) || 0;
                           const rate = draftTx.vatRate ?? 25;
-                          const vatAmount = Number((amount * (rate / (100 + rate))).toFixed(2));
+                          const vatAmount = Math.round((amount * (rate / (100 + rate))) * 100) / 100;
                           setDraftTx({ ...draftTx, amount, vatAmount });
+                          if (errors.amount) setErrors({ ...errors, amount: '' });
                         }}
                       />
+                      {errors.amount && <p className="text-xs text-red-500 font-medium -mt-1">{errors.amount}</p>}
                     </div>
                     <div className="flex flex-col justify-end gap-2">
-                      <Label className="text-base text-muted-foreground">Dato</Label>
+                      <Label className={`text-base text-muted-foreground ${errors.date ? 'text-red-500' : ''}`}>Dato</Label>
                       <div className="relative cursor-pointer" onClick={(e) => {
                           const input = e.currentTarget.querySelector('input');
                           try { if ('showPicker' in HTMLInputElement.prototype) input?.showPicker() } catch (e) { console.warn(e) }
                       }}>
                         <Input 
                           type="date"
-                          className="h-12 text-base font-medium appearance-none cursor-pointer w-full"
+                          className={`h-12 text-base font-medium appearance-none cursor-pointer w-full ${errors.date ? 'border-red-500' : ''}`}
                           value={draftTx.date ? new Date(draftTx.date).toISOString().split('T')[0] : ''} 
-                          onChange={(e) => setDraftTx({ ...draftTx, date: new Date(e.target.value).toISOString() })}
+                          onChange={(e) => {
+                            setDraftTx({ ...draftTx, date: new Date(e.target.value).toISOString() });
+                            if (errors.date) setErrors({ ...errors, date: '' });
+                          }}
                         />
                       </div>
+                      {errors.date && <p className="text-xs text-red-500 font-medium -mt-1">{errors.date}</p>}
                     </div>
                   </div>
 
                   <div className="space-y-2">
-                    <Label className="text-base text-muted-foreground">Kategori</Label>
+                    <Label className={`text-base text-muted-foreground ${errors.category ? 'text-red-500' : ''}`}>Kategori</Label>
                     <Select 
                       value={draftTx.category} 
                       onValueChange={(val: string | null) => {
                         if (val) {
                           const rate = getVatRateForCategory(val);
                           const amount = draftTx.amount || 0;
-                          const vatAmount = Number((amount * (rate / (100 + rate))).toFixed(2));
+                          const vatAmount = Math.round((amount * (rate / (100 + rate))) * 100) / 100;
                           setDraftTx({ ...draftTx, category: val, vatRate: rate, vatAmount });
+                          if (errors.category) setErrors({ ...errors, category: '' });
                         }
                       }}
                     >
-                      <SelectTrigger className="h-12 text-base font-medium">
+                      <SelectTrigger className={`h-12 text-base font-medium ${errors.category ? 'border-red-500' : ''}`} aria-label="Velg kategori">
                         <SelectValue placeholder="Velg kategori" />
                       </SelectTrigger>
                       <SelectContent>
@@ -234,6 +386,7 @@ export function TransactionList() {
                         ))}
                       </SelectContent>
                     </Select>
+                    {errors.category && <p className="text-xs text-red-500 font-medium">{errors.category}</p>}
                   </div>
 
                   {/* VAT Details */}
@@ -245,11 +398,11 @@ export function TransactionList() {
                         onValueChange={(val) => {
                           const rate = Number(val);
                           const amount = draftTx.amount || 0;
-                          const vatAmount = Number((amount * (rate / (100 + rate))).toFixed(2));
+                          const vatAmount = Math.round((amount * (rate / (100 + rate))) * 100) / 100;
                           setDraftTx({ ...draftTx, vatRate: rate, vatAmount });
                         }}
                       >
-                        <SelectTrigger className="h-12 text-base font-medium">
+                        <SelectTrigger className="h-12 text-base font-medium" aria-label="Mva-sats">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -263,11 +416,9 @@ export function TransactionList() {
                     <div className="flex flex-col justify-end gap-2">
                       <Label className="text-base text-muted-foreground">Mva-beløp</Label>
                       <Input 
-                        type="number"
-                        step="0.01"
-                        className="h-12 text-base font-medium"
-                        value={draftTx.vatAmount || ''} 
-                        onChange={(e) => setDraftTx({ ...draftTx, vatAmount: parseFloat(e.target.value) || 0 })}
+                        disabled
+                        className="h-12 text-base font-medium bg-muted/50"
+                        value={draftTx.vatAmount !== undefined ? draftTx.vatAmount.toString().replace('.', ',') : ''} 
                       />
                     </div>
                     <div className="flex flex-col justify-end gap-2">
@@ -275,7 +426,7 @@ export function TransactionList() {
                       <Input 
                         disabled
                         className="h-12 text-base font-medium bg-muted/50"
-                        value={((draftTx.amount || 0) - (draftTx.vatAmount || 0)).toFixed(2)} 
+                        value={((draftTx.amount || 0) - (draftTx.vatAmount || 0)).toFixed(2).replace('.', ',')} 
                       />
                     </div>
                   </div>
@@ -284,7 +435,7 @@ export function TransactionList() {
                 {/* Receipts Component */}
                 <div className="pt-4 border-t space-y-3">
                   <h3 className="font-semibold text-base flex items-center gap-2">
-                    <Paperclip className="h-5 w-5 text-muted-foreground" /> Kvitteringer & Vedlegg
+                    <Paperclip className="h-5 w-5 text-muted-foreground" /> Kvitteringer & vedlegg
                   </h3>
                   
                   {draftTx.receiptUrl ? (
@@ -319,13 +470,9 @@ export function TransactionList() {
                       type="button" 
                       variant="destructive" 
                       className="w-full h-12"
-                      onClick={() => {
-                        if (selectedTx.id && confirm('Er du sikker på at du vil slette denne transaksjonen?')) {
-                          deleteMutation.mutate(selectedTx.id);
-                        }
-                      }}
+                      onClick={() => setDeleteConfirmType('single')}
                     >
-                      Slett Transaksjon
+                      Slett transaksjon
                     </Button>
                   </div>
                 )}
@@ -334,7 +481,7 @@ export function TransactionList() {
               {/* Action Footers Anchored to Bottom */}
               <div className="mt-auto px-6 sm:px-8 py-4 border-t bg-background shrink-0 z-10 w-full">
                 <div className="flex gap-3">
-                  <Button type="button" variant="outline" className="flex-1 h-14 text-lg rounded-xl font-semibold" onClick={() => setSelectedTx(null)}>
+                  <Button type="button" variant="outline" className="flex-1 h-14 text-lg rounded-xl font-semibold" onClick={() => { setSelectedTx(null); setAmountStr(""); setErrors({}); }}>
                     Avbryt
                   </Button>
                   <Button onClick={handleSave} disabled={updateMutation.isPending} className="flex-1 h-14 text-lg rounded-xl shadow-xl flex items-center justify-center gap-2 font-semibold">
@@ -346,21 +493,99 @@ export function TransactionList() {
           )}
         </SheetContent>
       </Sheet>
+
+      <Dialog open={deleteConfirmType !== null} onOpenChange={(open) => !open && setDeleteConfirmType(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-destructive flex items-center gap-2">
+              <Trash2 className="w-5 h-5" /> Slett {deleteConfirmType === 'bulk' ? 'transaksjoner' : 'transaksjon'}
+            </DialogTitle>
+            <DialogDescription className="pt-2 text-base">
+              Er du sikker på at du vil slette {deleteConfirmType === 'bulk' ? `${selectedIds.size} transaksjoner` : 'denne transaksjonen'}? Denne handlingen kan ikke angres.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex gap-3 pt-4">
+            <Button type="button" variant="outline" className="flex-1" onClick={() => setDeleteConfirmType(null)}>
+              Avbryt
+            </Button>
+            <Button 
+              type="button" 
+              variant="destructive" 
+              className="flex-1"
+              disabled={deleteMutation.isPending || deleteMultipleMutation.isPending}
+              onClick={() => {
+                if (deleteConfirmType === 'single' && selectedTx?.id) {
+                  deleteMutation.mutate(selectedTx.id);
+                  setDeleteConfirmType(null); // Force close modal so state resets
+                } else if (deleteConfirmType === 'bulk') {
+                  deleteMultipleMutation.mutate(Array.from(selectedIds));
+                  setDeleteConfirmType(null);
+                }
+              }}
+            >
+              Ja, slett
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
 
-function TransactionListItem({ transaction, onClick }: { transaction: Transaction, onClick: () => void }) {
+function TransactionListItem({ transaction, onClick, isSelected, isSelectionMode, onToggle }: { transaction: Transaction, onClick: () => void, isSelected?: boolean, isSelectionMode?: boolean, onToggle?: (id: string) => void }) {
   const isIncome = transaction.type === "income";
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+
+  const handleStart = () => {
+    if (onToggle) {
+      timerRef.current = setTimeout(() => {
+        onToggle(transaction.id!);
+        if (navigator.vibrate) navigator.vibrate(50);
+      }, 500);
+    }
+  };
+  
+  const handleEnd = () => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+  };
 
   return (
     <RecordItem
-      onClick={onClick}
-      icon={getCategoryIcon(transaction.category)}
-      iconBgClass={isIncome ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'}
+      onContextMenu={(e) => {
+        if (onToggle) {
+          e.preventDefault();
+          onToggle(transaction.id!);
+        }
+      }}
+      onTouchStart={handleStart}
+      onTouchEnd={handleEnd}
+      onTouchCancel={handleEnd}
+      onMouseDown={handleStart}
+      onMouseUp={handleEnd}
+      onMouseLeave={handleEnd}
+      onClick={(e: React.MouseEvent) => {
+        if (isSelectionMode && onToggle) {
+          e.preventDefault();
+          onToggle(transaction.id!);
+        } else {
+          onClick();
+        }
+      }}
+      className={isSelected ? 'border-primary bg-primary/5 ring-1 ring-primary/20' : ''}
+      icon={
+        isSelectionMode ? (
+          <input 
+            type="checkbox" 
+            checked={!!isSelected}
+            readOnly
+            className="w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary pointer-events-none"
+          />
+        ) : getCategoryIcon(transaction.category)
+      }
+      iconBgClass={isIncome && !isSelectionMode ? 'bg-green-500/10 text-green-500' : (!isSelectionMode ? 'bg-red-500/10 text-red-500' : 'bg-transparent')}
       title={transaction.description || transaction.category}
       primaryValue={`${isIncome ? '+' : '-'}${formatCurrency(transaction.amount)}`}
-      primaryValueClass={isIncome ? 'text-green-500' : ''}
+      primaryValueClass={isIncome && !isSelectionMode ? 'text-green-500' : ''}
       secondaryValue={formatDate(transaction.date)}
     />
   );

@@ -11,6 +11,35 @@ export const api = {
       await sleep(DELAY_MS);
       return db.transactions.orderBy('date').reverse().toArray();
     },
+    getChartData: async (period: 'month' | 'week') => {
+      await sleep(DELAY_MS);
+      const allTxs = await db.transactions.toArray();
+      const grouped = allTxs.reduce((acc: Record<string, { name: string, inntekt: number, utgift: number, sortKey: string }>, tx) => {
+        const date = new Date(tx.date);
+        let key = '';
+        let displayName = '';
+        
+        if (period === 'month') {
+          key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+          displayName = date.toLocaleString('no-NO', { month: 'short' });
+        } else {
+          const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+          const dayNum = d.getUTCDay() || 7;
+          d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+          const yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
+          const weekNo = Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1)/7);
+          key = `${d.getUTCFullYear()}-W${String(weekNo).padStart(2, '0')}`;
+          displayName = `Uke ${weekNo}`;
+        }
+
+        if (!acc[key]) acc[key] = { name: displayName, inntekt: 0, utgift: 0, sortKey: key };
+        if (tx.type === 'income') acc[key].inntekt += tx.amount;
+        if (tx.type === 'expense') acc[key].utgift += tx.amount;
+        return acc;
+      }, {});
+      const sorted = Object.values(grouped).sort((a, b) => a.sortKey.localeCompare(b.sortKey));
+      return sorted.slice(-6);
+    },
     create: async (data: Omit<Transaction, 'id'>) => {
       await sleep(DELAY_MS);
       const id = crypto.randomUUID();
@@ -27,6 +56,16 @@ export const api = {
       await sleep(DELAY_MS);
       await db.transactions.update(id, data);
       return { id, ...data };
+    },
+    deleteMultiple: async (ids: string[]) => {
+      await sleep(DELAY_MS);
+      await db.transactions.bulkDelete(ids);
+      return ids;
+    },
+    updateMultiple: async (ids: string[], data: Partial<Transaction>) => {
+      await sleep(DELAY_MS);
+      await Promise.all(ids.map(id => db.transactions.update(id, data)));
+      return ids;
     }
   },
   invoices: {
@@ -40,6 +79,30 @@ export const api = {
       const newInvoice: Invoice = { ...data, id };
       await db.invoices.add(newInvoice);
       return newInvoice;
+    },
+    update: async (id: string, data: Partial<Invoice>) => {
+      await sleep(DELAY_MS);
+      const existing = await db.invoices.get(id);
+      if (!existing) throw new Error("Invoice not found");
+      
+      // Auto-Ledger for Paid
+      if (data.status === 'paid' && existing.status !== 'paid') {
+        const primaryVat = existing.items.some(i => i.vatRate > 0) ? Math.max(...existing.items.map(i => i.vatRate)) : 0;
+        await db.transactions.add({
+          id: crypto.randomUUID(),
+          amount: existing.total,
+          vatRate: primaryVat, 
+          vatAmount: Number((existing.total - existing.subtotal).toFixed(2)),
+          date: new Date().toISOString(),
+          type: "income",
+          category: "Salg B2B",
+          description: `Innbetaling Faktura #${id.split('-')[0]} - ${existing.clientName}`,
+          status: "completed"
+        });
+      }
+
+      await db.invoices.update(id, data);
+      return { ...existing, ...data };
     }
   },
   contacts: {
@@ -98,6 +161,21 @@ export const api = {
       const id = crypto.randomUUID();
       const newReport: ZReport = { ...data, id };
       await db.zreports.add(newReport);
+      
+      // Automatic Ledger Routing for Discrepancy (Manko/Overskudd)
+      if (data.cashDifference && Math.abs(data.cashDifference) > 0) {
+        await db.transactions.add({
+          id: crypto.randomUUID(),
+          amount: Math.abs(data.cashDifference),
+          date: data.date,
+          type: data.cashDifference > 0 ? 'income' : 'expense',
+          category: 'Drift',
+          description: `Kassedifferanse (${data.cashDifference > 0 ? 'Overskudd' : 'Manko'}) - Z-Rapport`,
+          vatRate: 0,
+          vatAmount: 0,
+          status: 'completed'
+        });
+      }
       return newReport;
     }
   },
@@ -110,7 +188,9 @@ export const api = {
           id: 'default',
           companyName: 'Kotta',
           orgNumber: '987 654 321 MVA',
-          companyAddress: 'Bergen, Norge',
+          companyAddress: 'Storgata 1',
+          companyZipCode: '5003',
+          companyCity: 'Bergen',
           bankAccount: '1234.56.78901',
           iban: 'NO12 1234 5678 9012',
           swift: 'DNBANOKK',
@@ -153,21 +233,21 @@ export const api = {
 
     // --- 1. Contacts (Hovedbok) ---
     const b2bClientsData: Contact[] = [
-      { id: crypto.randomUUID(), name: "Cornelius Sjømatrestaurant AS", relationType: "Kunde", orgNumber: "987654321", contactPerson: "Ola Nordmann", email: "faktura@cornelius.no", phone: "55 12 34 56", address: "Holmen 1", zipCity: "5177 Mathopen", paymentTermsDays: 14, currency: "NOK", vatHandling: "Standard" },
-      { id: crypto.randomUUID(), name: "Bryggeloftet & Stuene", relationType: "Kunde", orgNumber: "876543210", contactPerson: "Kari Nilsen", email: "regnskap@bryggeloftet.no", phone: "55 31 06 30", address: "Bryggen 11", zipCity: "5003 Bergen", paymentTermsDays: 14, currency: "NOK", vatHandling: "Standard" },
-      { id: crypto.randomUUID(), name: "Colonialen KS", relationType: "Kunde", orgNumber: "765432109", contactPerson: "Espen Askeladd", email: "faktura@colonialen.no", phone: "55 90 16 00", address: "Paradisleitet 1", zipCity: "5231 Paradis", paymentTermsDays: 20, currency: "NOK", vatHandling: "Standard" }
+      { id: crypto.randomUUID(), name: "Cornelius Sjømatrestaurant AS", relationType: "Kunde", orgNumber: "987 654 321", contactPerson: "Ola Nordmann", email: "faktura@cornelius.no", phone: "55 12 34 56", address: "Holmen 1", zipCode: "5177", city: "Mathopen", paymentTermsDays: 14, currency: "NOK", vatHandling: "Standard", ehfEnabled: true },
+      { id: crypto.randomUUID(), name: "Bryggeloftet & Stuene", relationType: "Kunde", orgNumber: "876 543 210", contactPerson: "Kari Nilsen", email: "regnskap@bryggeloftet.no", phone: "55 31 06 30", address: "Bryggen 11", zipCode: "5003", city: "Bergen", paymentTermsDays: 14, currency: "NOK", vatHandling: "Standard", ehfEnabled: true },
+      { id: crypto.randomUUID(), name: "Colonialen KS", relationType: "Kunde", orgNumber: "765 432 109", contactPerson: "Espen Askeladd", email: "faktura@colonialen.no", phone: "55 90 16 00", address: "Paradisleitet 1", zipCode: "5231", city: "Paradis", paymentTermsDays: 20, currency: "NOK", vatHandling: "Standard", ehfEnabled: true }
     ];
 
     const b2cClientsData: Contact[] = [
-      { id: crypto.randomUUID(), name: "Hans Haukås", relationType: "Kunde", orgNumber: "", contactPerson: "Hans", email: "hans.haukaas@privat.no", phone: "98 12 34 56", address: "Storgata 14", zipCity: "0185 Oslo", paymentTermsDays: 10, currency: "NOK", vatHandling: "Standard" },
-      { id: crypto.randomUUID(), name: "Sofie Solberg", relationType: "Kunde", orgNumber: "", contactPerson: "Sofie", email: "sofiemat99@gmail.com", phone: "44 55 66 77", address: "Furueveien 8", zipCity: "1344 Haslum", paymentTermsDays: 10, currency: "NOK", vatHandling: "Standard" }
+      { id: crypto.randomUUID(), name: "Hans Haukås", relationType: "Kunde", orgNumber: "", contactPerson: "Hans", email: "hans.haukaas@privat.no", phone: "98 12 34 56", address: "Storgata 14", zipCode: "0185", city: "Oslo", paymentTermsDays: 10, currency: "NOK", vatHandling: "Standard", ehfEnabled: false },
+      { id: crypto.randomUUID(), name: "Sofie Solberg", relationType: "Kunde", orgNumber: "", contactPerson: "Sofie", email: "sofiemat99@gmail.com", phone: "44 55 66 77", address: "Furueveien 8", zipCode: "1344", city: "Haslum", paymentTermsDays: 10, currency: "NOK", vatHandling: "Standard", ehfEnabled: false }
     ];
 
     const vendorsData: Contact[] = [
-      { id: crypto.randomUUID(), name: "Bama Storkjøkken AS", relationType: "Leverandør", orgNumber: "912345678", contactPerson: "Jens Hansen", email: "ordre@bama.no", phone: "22 88 00 00", address: "Nedre Kalbakkvei 40", zipCity: "1081 Oslo", paymentTermsDays: 30, currency: "NOK", vatHandling: "Standard" },
-      { id: crypto.randomUUID(), name: "Glass & Emballasje AS", relationType: "Leverandør", orgNumber: "923456789", contactPerson: "Siri Pettersen", email: "post@emballasje.no", phone: "69 12 34 56", address: "Industriveien 5", zipCity: "1600 Fredrikstad", paymentTermsDays: 14, currency: "NOK", vatHandling: "Standard" },
-      { id: crypto.randomUUID(), name: "Engrosfrukt AS", relationType: "Leverandør", orgNumber: "934567890", contactPerson: "Per Olsen", email: "faktura@engrosfrukt.no", phone: "55 55 55 55", address: "Fruktåsen 1", zipCity: "5081 Bergen", paymentTermsDays: 14, currency: "NOK", vatHandling: "Standard" },
-      { id: crypto.randomUUID(), name: "Posten Bring AS", relationType: "Leverandør", orgNumber: "984661185", contactPerson: "Kundeservice", email: "faktura@bring.no", phone: "04045", address: "Biskop Gunnerus' gate 14A", zipCity: "0185 Oslo", paymentTermsDays: 14, currency: "NOK", vatHandling: "Standard" }
+      { id: crypto.randomUUID(), name: "Bama Storkjøkken AS", relationType: "Leverandør", orgNumber: "912 345 678", contactPerson: "Jens Hansen", email: "ordre@bama.no", phone: "22 88 00 00", address: "Nedre Kalbakkvei 40", zipCode: "1081", city: "Oslo", paymentTermsDays: 30, currency: "NOK", vatHandling: "Standard", ehfEnabled: true, defaultAccount: "4300" },
+      { id: crypto.randomUUID(), name: "Glass & Emballasje AS", relationType: "Leverandør", orgNumber: "923 456 789", contactPerson: "Siri Pettersen", email: "post@emballasje.no", phone: "69 12 34 56", address: "Industriveien 5", zipCode: "1600", city: "Fredrikstad", paymentTermsDays: 14, currency: "NOK", vatHandling: "Standard", ehfEnabled: true, defaultAccount: "4000" },
+      { id: crypto.randomUUID(), name: "Engrosfrukt AS", relationType: "Leverandør", orgNumber: "934 567 890", contactPerson: "Per Olsen", email: "faktura@engrosfrukt.no", phone: "55 55 55 55", address: "Fruktåsen 1", zipCode: "5081", city: "Bergen", paymentTermsDays: 14, currency: "NOK", vatHandling: "Standard", ehfEnabled: false, defaultAccount: "4300" },
+      { id: crypto.randomUUID(), name: "Posten Bring AS", relationType: "Leverandør", orgNumber: "984 661 185", contactPerson: "Kundeservice", email: "faktura@bring.no", phone: "04045", address: "Biskop Gunnerus' gate 14A", zipCode: "0185", city: "Oslo", paymentTermsDays: 14, currency: "NOK", vatHandling: "Standard", ehfEnabled: true, defaultAccount: "7140" }
     ];
 
     const allContacts = [...b2bClientsData, ...b2cClientsData, ...vendorsData];
