@@ -10,13 +10,13 @@ import { api } from '@/lib/api'
 import { ThemeProvider } from './providers/ThemeProvider.tsx'
 
 api.seedDataIfNeeded().then(() => {
-  createRoot(document.getElementById('root')!).render(
-    <StrictMode>
-      <ThemeProvider defaultTheme="default" storageKey="mintech-theme">
-        <QueryClientProvider client={queryClient}>
-          <App />
-        </QueryClientProvider>
-      </ThemeProvider>
-    </StrictMode>,
-  )
+ createRoot(document.getElementById('root')!).render(
+ <StrictMode>
+ <ThemeProvider defaultTheme="default" storageKey="mintech-theme">
+ <QueryClientProvider client={queryClient}>
+ <App />
+ </QueryClientProvider>
+ </ThemeProvider>
+ </StrictMode>,
+ )
 });

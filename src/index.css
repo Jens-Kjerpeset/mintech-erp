@@ -1,11 +1,9 @@
 @import "tailwindcss";
-@import "tw-animate-css";
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/geist";
 @import "@fontsource-variable/outfit";
-@import "@fontsource-variable/space-grotesk";
 @import "@fontsource-variable/playfair-display";
-@import "@fontsource-variable/jetbrains-mono";
+@import "@fontsource-variable/quicksand";
 @import "@fontsource-variable/quicksand";
 
 @custom-variant dark (&:is(.dark *));
@@ -114,6 +112,11 @@
   html {
     @apply font-sans;
   }
+}
+
+/* Anti-Vibe Iconography Override: Break the Lucide React homogeneity */
+svg.lucide {
+  stroke-width: 1.25 !important;
 }
 
 @layer base {
@@ -237,83 +240,41 @@
   --sidebar-ring: oklch(0.556 0 0);
 }
 
-.theme-1 {
-  /* Cyber Neon - Drastic Light Mode */
-  --font-sans: 'Space Grotesk Variable', sans-serif;
-  --background: oklch(0.97 0.05 100); /* Pale acid green/yellow */
-  --foreground: oklch(0.1 0.05 300); /* Dark purple text */
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.1 0.05 300);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.1 0.05 300);
-  
-  --primary: oklch(0.6 0.3 300); /* Shocking Neon Purple */
-  --primary-foreground: oklch(0.98 0 0); /* White */
-  
-  --secondary: oklch(0.85 0.15 100); /* Bright lime/yellow accents */
-  --secondary-foreground: oklch(0.2 0.1 300);
-  
-  --muted: oklch(0.92 0.05 100);
-  --muted-foreground: oklch(0.4 0.1 300);
-  
-  --accent: oklch(0.6 0.3 300 / 10%);
-  --accent-foreground: oklch(0.6 0.3 300);
-  
-  --destructive: oklch(0.6 0.25 20); /* Neon Red */
-  --border: oklch(0.7 0.1 300); /* Distinct purple borders */
-  --input: oklch(0.8 0.1 300);
-  --ring: oklch(0.6 0.3 300);
-  
-  --radius: 0rem; /* Sharp, brutalist edges */
-  --chart-1: oklch(0.6 0.3 300);
-  
-  --sidebar: oklch(0.1 0.05 300); /* Pitch dark purple sidebar in light mode! */
-  --sidebar-foreground: oklch(0.95 0.05 100);
-  --sidebar-primary: oklch(0.85 0.15 100);
-  --sidebar-primary-foreground: oklch(0.1 0.05 300);
-  --sidebar-accent: oklch(0.2 0.1 300);
-  --sidebar-accent-foreground: oklch(0.95 0.05 100);
-  --sidebar-border: oklch(0.2 0.1 300);
-  --sidebar-ring: oklch(0.85 0.15 100);
-}
-
-.theme-1.dark {
-  /* Cyber Neon - Drastic Dark Mode */
-  --font-sans: 'Space Grotesk Variable', sans-serif;
-  --background: oklch(0.12 0.02 280); /* Deep indigo/black */
-  --foreground: oklch(0.95 0.05 100); /* Pale lime text for high contrast */
-  --card: oklch(0.15 0.05 280);
-  --card-foreground: oklch(0.95 0.05 100);
-  --popover: oklch(0.15 0.05 280);
-  --popover-foreground: oklch(0.95 0.05 100);
-  
-  --primary: oklch(0.75 0.25 140); /* Neon Cyber Green */
-  --primary-foreground: oklch(0.1 0.05 280);
-  
-  --secondary: oklch(0.3 0.1 300); /* Deep neon purple backgrounds */
-  --secondary-foreground: oklch(0.9 0.1 300);
-  
-  --muted: oklch(0.2 0.05 280);
-  --muted-foreground: oklch(0.7 0.1 280);
-  
-  --accent: oklch(0.3 0.1 300);
-  --accent-foreground: oklch(0.95 0.05 100);
-  
-  --destructive: oklch(0.65 0.25 20);
-  --border: oklch(0.3 0.1 300); /* Purple borders on dark mode */
-  --input: oklch(0.3 0.1 300);
-  --ring: oklch(0.75 0.25 140); /* Neon green focus rings */
-  
-  --radius: 0rem; /* Sharp edges */
-  
-  --sidebar: oklch(0.08 0.02 280);
-  --sidebar-foreground: oklch(0.95 0.05 100);
-  --sidebar-primary: oklch(0.75 0.25 140);
-  --sidebar-primary-foreground: oklch(0.1 0.05 280);
-  --sidebar-accent: oklch(0.2 0.05 280);
-  --sidebar-accent-foreground: oklch(0.75 0.25 140);
-  --sidebar-border: oklch(0.2 0.05 280);
-  --sidebar-ring: oklch(0.75 0.25 140);
+.theme-1, .theme-1.dark {
+  /* Generic Dark Mode of Default UI */
+  --font-sans: 'Geist Variable', sans-serif;
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.922 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+  --radius: 0rem;
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.556 0 0);
 }
 
 .theme-2 {
@@ -356,84 +317,7 @@
   --sidebar-ring: oklch(0.7 0.15 70);
 }
 
-.theme-2.dark {
-  /* Vintage Luxury - Elegant Emerald & Gold Dark Mode */
-  --font-sans: 'Playfair Display Variable', serif;
-  --background: oklch(0.12 0.03 150); /* Pitch Emerald/Black */
-  --foreground: oklch(0.95 0.01 85); /* Warm Pale Cream Text */
-  --card: oklch(0.16 0.04 150); /* Deep Evergreen Cards */
-  --card-foreground: oklch(0.95 0.01 85);
-  --popover: oklch(0.16 0.04 150);
-  --popover-foreground: oklch(0.95 0.01 85);
-  
-  --primary: oklch(0.75 0.15 70); /* Bright Antiqued Gold */
-  --primary-foreground: oklch(0.12 0.03 150);
-  
-  --secondary: oklch(0.22 0.05 150); /* Subdued green */
-  --secondary-foreground: oklch(0.85 0.1 70);
-  
-  --muted: oklch(0.2 0.04 150);
-  --muted-foreground: oklch(0.7 0.05 150);
-  
-  --accent: oklch(0.22 0.05 150);
-  --accent-foreground: oklch(0.75 0.15 70);
-  
-  --destructive: oklch(0.55 0.15 30);
-  --border: oklch(0.25 0.05 150);
-  --input: oklch(0.25 0.05 150);
-  --ring: oklch(0.75 0.15 70);
-  
-  --sidebar: oklch(0.1 0.02 150);
-  --sidebar-foreground: oklch(0.95 0.01 85);
-  --sidebar-primary: oklch(0.75 0.15 70);
-  --sidebar-primary-foreground: oklch(0.12 0.03 150);
-  --sidebar-accent: oklch(0.18 0.04 150);
-  --sidebar-accent-foreground: oklch(0.95 0.01 85);
-  --sidebar-border: oklch(0.18 0.04 150);
-  --sidebar-ring: oklch(0.75 0.15 70);
-}
 
-.theme-3, .theme-3.dark {
-  /* Dark-Mode Cyberpunk */
-  --font-sans: 'JetBrains Mono Variable', monospace;
-  --background: oklch(0.1 0.02 300); /* Dark purple-grey */
-  --foreground: oklch(0.95 0.05 100); /* Light text */
-  --card: oklch(0.12 0.03 300); /* Slightly lighter background for cards */
-  --card-foreground: oklch(0.95 0.05 100);
-  --popover: oklch(0.12 0.03 300);
-  --popover-foreground: oklch(0.95 0.05 100);
-  
-  --primary: oklch(0.85 0.22 100); /* Cyber Yellow */
-  --primary-foreground: oklch(0.1 0 0); /* Black text on yellow */
-  
-  --secondary: oklch(0.2 0.05 300); /* Darker purple */
-  --secondary-foreground: oklch(0.85 0.22 100); /* Yellow text */
-  
-  --muted: oklch(0.18 0.03 300);
-  --muted-foreground: oklch(0.6 0.1 300);
-  
-  --accent: oklch(0.6 0.3 330 / 15%); /* Neon Pink glow */
-  --accent-foreground: oklch(0.6 0.3 330); /* Neon Pink text */
-  
-  --destructive: oklch(0.6 0.3 20); /* Neon Red */
-  
-  --border: oklch(0.6 0.3 330 / 40%); /* Glowing pink borders */
-  --input: oklch(0.2 0.05 300);
-  --ring: oklch(0.85 0.22 100); /* Cyber yellow ring */
-  
-  --radius: 0rem; /* Sharp edges */
-  --chart-1: oklch(0.85 0.22 100); /* Yellow */
-  --chart-2: oklch(0.6 0.3 330); /* Pink */
-  
-  --sidebar: oklch(0.08 0.02 300); /* Pitch Dark */
-  --sidebar-foreground: oklch(0.95 0.05 100);
-  --sidebar-primary: oklch(0.85 0.22 100);
-  --sidebar-primary-foreground: oklch(0.1 0 0);
-  --sidebar-accent: oklch(0.2 0.05 300);
-  --sidebar-accent-foreground: oklch(0.85 0.22 100);
-  --sidebar-border: oklch(0.6 0.3 330 / 30%);
-  --sidebar-ring: oklch(0.85 0.22 100);
-}
 
 .theme-4 {
   /* Super Cutesy Girly-Girl Light Mode */
@@ -462,7 +346,7 @@
   --input: oklch(0.9 0.06 350);
   --ring: oklch(0.65 0.25 350);
   
-  --radius: 2.5rem; /* Maximum bubble rounding */
+  --radius: 1.0rem; /* Modest bubble rounding */
   --chart-1: oklch(0.65 0.25 350);
   --chart-2: oklch(0.85 0.15 300);
   
@@ -503,7 +387,7 @@
   --input: oklch(0.4 0.15 330);
   --ring: oklch(0.7 0.25 340);
   
-  --radius: 2.5rem; /* Maximum bubble rounding */
+  --radius: 1.0rem; /* Modest bubble rounding */
   
   --sidebar: oklch(0.15 0.08 330);
   --sidebar-foreground: oklch(0.95 0.05 350);
