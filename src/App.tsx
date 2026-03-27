@@ -32,7 +32,6 @@ export default function App() {
  const [scale, setScale] = useState(1);
 
  // TODO: The iframe simulator scaling breaks slightly on ultra-wide horizontal monitors. 
- // Ignoring for now since our users are mostly B2B iPad/Desktop anyway. - Jens
  // ... (useEffects remain the same) 
  useEffect(() => {
  if (!inIframe && isIPhoneMode) {
