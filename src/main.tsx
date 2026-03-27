@@ -8,15 +8,18 @@ import { queryClient } from './lib/queryClient.ts'
 import { api } from '@/lib/api'
 
 import { ThemeProvider } from './providers/ThemeProvider.tsx'
+import { GlobalErrorBoundary } from './components/GlobalErrorBoundary.tsx'
 
 api.seedDataIfNeeded().then(() => {
  createRoot(document.getElementById('root')!).render(
  <StrictMode>
+ <GlobalErrorBoundary>
  <ThemeProvider defaultTheme="default" storageKey="mintech-theme">
  <QueryClientProvider client={queryClient}>
  <App />
  </QueryClientProvider>
  </ThemeProvider>
+ </GlobalErrorBoundary>
  </StrictMode>,
  )
 });
