@@ -204,11 +204,11 @@ export function InvoiceBuilder({ open, onOpenChange, invoice }: { open: boolean;
  </div>
  <div className="w-full sm:w-auto">
  <Label className="sm:hidden mb-2 block">Antall</Label>
- <Input className="h-10" type="number" step="1" {...form.register(`items.${index}.quantity`, { valueAsNumber: true })} />
+ <Input className="h-10" type="number" step="1" placeholder="1" {...form.register(`items.${index}.quantity`, { valueAsNumber: true })} />
  </div>
  <div className="w-full sm:w-auto">
  <Label className="sm:hidden mb-2 block">Pris Ex Mva</Label>
- <Input className="h-10 bg-muted/50" type="number" step="0.01" readOnly disabled {...form.register(`items.${index}.price`, { valueAsNumber: true })} />
+ <Input className="h-10 bg-muted/50" type="number" step="0.01" placeholder="0.00" readOnly disabled {...form.register(`items.${index}.price`, { valueAsNumber: true })} />
  </div>
  <div className="w-full sm:w-auto">
  <Label className="sm:hidden mb-2 block">Mva %</Label>

@@ -28,12 +28,13 @@
         --loader-transition: opacity 0.3s ease;
       }
       /* Initial loader to prevent FOUC and provide visual feedback before bundle execution */
-      html, body { margin: 0; background-color: var(--app-bg); color: var(--app-fg); }
+      html, body { margin: 0; background-color: var(--app-bg); }
       #app-loader {
         position: fixed; top: 0; left: 0; right: 0; bottom: 0;
         display: flex; justify-content: center; align-items: center;
         background: var(--app-bg); z-index: 9999;
         font-family: var(--app-font-mono);
+        color: var(--app-fg);
         transition: var(--loader-transition);
       }
       .loader-text {

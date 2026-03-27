@@ -312,7 +312,7 @@ export function ContactList() {
 
  <div className="grid grid-cols-2 gap-4">
  <FormField control={form.control} name="paymentTermsDays" render={({ field }) => (
- <FormItem className="flex flex-col justify-end space-y-0 gap-2"><FormLabel>Kredittid (Dager)</FormLabel><FormControl><Input type="number" {...field} onChange={e => field.onChange(Number(e.target.value))} /></FormControl><FormMessage /></FormItem>
+ <FormItem className="flex flex-col justify-end space-y-0 gap-2"><FormLabel>Kredittid (Dager)</FormLabel><FormControl><Input type="number" placeholder="14" {...field} onChange={e => field.onChange(Number(e.target.value))} /></FormControl><FormMessage /></FormItem>
  )} />
  <FormField control={form.control} name="currency" render={({ field }) => (
  <FormItem className="flex flex-col justify-end space-y-0 gap-2"><FormLabel>Valuta</FormLabel>
