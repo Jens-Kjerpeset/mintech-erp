@@ -2,12 +2,18 @@ import React, { useState, useMemo, useTransition } from'react';
 import { useQuery } from'@tanstack/react-query';
 import { api } from'../../lib/api';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArrowUp, faArrowDown, faFileExport } from '@fortawesome/free-solid-svg-icons';
+import { faArrowUp, faArrowDown, faFileExport, faChevronDown, faChevronRight } from '@fortawesome/free-solid-svg-icons';
 import { Transaction } from '../../types/schema';
 import { LedgerEditSheet } from'./LedgerEditSheet';
 
 export function LedgerList() {
   const [selectedTx, setSelectedTx] = useState<Transaction | null>(null);
+  const [expandedMonths, setExpandedMonths] = useState<Record<string, boolean>>(() => {
+    const currentM = new Date().toLocaleString('no-NO', { month: 'long', year: 'numeric' });
+    return { [currentM.charAt(0).toUpperCase() + currentM.slice(1)]: true };
+  });
+  
+  const toggleMonth = (month: string) => setExpandedMonths(prev => ({ ...prev, [month]: !prev[month] }));
   
   // Filter state
   const [typeFilter, setTypeFilter] = useState<'all' |'income' |'expense'>('all');
@@ -103,6 +109,17 @@ export function LedgerList() {
     });
   }, [transactions, deferredFilters]);
 
+  const groupedData = useMemo(() => {
+    const groups: Record<string, Transaction[]> = {};
+    filteredData.forEach(t => {
+      const monthStr = new Date(t.date).toLocaleString('no-NO', { month: 'long', year: 'numeric' });
+      const cappedMonthStr = monthStr.charAt(0).toUpperCase() + monthStr.slice(1);
+      if (!groups[cappedMonthStr]) groups[cappedMonthStr] = [];
+      groups[cappedMonthStr].push(t);
+    });
+    return groups;
+  }, [filteredData]);
+
   return (
     <div className="space-y-6 pb-20">
       <div className="flex flex-col border-b-4 border-black pb-4 gap-4">
@@ -184,35 +201,48 @@ export function LedgerList() {
              </div>
           </div>
 
-          <div className="flex flex-col gap-4">
-            {filteredData.map((t) => (
-              <button
-                key={t.id}
-                onClick={() => setSelectedTx(t)}
-                className="w-full text-left active:scale-[0.98] transition-transform duration-100 ease-in-out focus:outline-none block"
-              >
-                <div className="border-2 border-black bg-white p-4 flex justify-between items-center hover:bg-zinc-50 transition-colors">
-                  {/* Left Column (Context) */}
-                  <div className="flex flex-col gap-1 w-full overflow-hidden mr-4">
-                    <span className="font-bold truncate text-[15px]">{t.description ||'Ingen beskrivelse'}</span>
-                    <span className="text-sm tracking-widest text-zinc-500 font-bold whitespace-nowrap overflow-hidden text-ellipsis">
-                       {new Date(t.date).toLocaleDateString('no-NO')} • {t.category}
-                    </span>
+          <div className="flex flex-col gap-6">
+            {Object.entries(groupedData).map(([month, txs]) => (
+              <div key={month} className="flex flex-col gap-3">
+                <button
+                  onClick={() => toggleMonth(month)}
+                  className="bg-black text-white px-4 py-3 font-black text-xl tracking-widest text-left flex justify-between items-center active:scale-95 transition-transform border-4 border-black group"
+                >
+                  <span>{month}</span>
+                  <FontAwesomeIcon icon={expandedMonths[month] ? faChevronDown : faChevronRight} className="group-active:scale-90" />
+                </button>
+                
+                {expandedMonths[month] && (
+                  <div className="flex flex-col gap-4 pl-3 border-l-4 border-black ml-1.5 transition-all">
+                    {txs.map((t) => (
+                      <button
+                        key={t.id}
+                        onClick={() => setSelectedTx(t)}
+                        className="w-full text-left active:scale-[0.98] transition-transform duration-100 ease-in-out focus:outline-none block"
+                      >
+                        <div className="border-2 border-black bg-white p-4 flex justify-between items-center hover:bg-zinc-50 transition-colors">
+                          <div className="flex flex-col gap-1 w-full overflow-hidden mr-4">
+                            <span className="font-bold truncate text-[15px]">{t.description || 'Ingen beskrivelse'}</span>
+                            <span className="text-sm tracking-widest text-zinc-500 font-bold whitespace-nowrap overflow-hidden text-ellipsis">
+                               {new Date(t.date).toLocaleDateString('no-NO')} • {t.category}
+                            </span>
+                          </div>
+                          <div className="flex flex-col items-end gap-1 shrink-0">
+                            <span className={`font-mono font-black text-lg whitespace-nowrap ${t.type === 'income' ? 'text-green-600' : 'text-black'}`}>
+                              {t.type === 'income' ? '+' : '-'}{t.amount.toLocaleString('no-NO')} kr
+                            </span>
+                            {t.vatAmount > 0 && (
+                              <span className="text-[10px] text-zinc-500 font-bold font-mono">
+                                inkl. MVA {t.vatAmount.toLocaleString('no-NO')}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </button>
+                    ))}
                   </div>
-
-                  {/* Right Column (Financial Impact) */}
-                  <div className="flex flex-col items-end gap-1 shrink-0">
-                    <span className={`font-mono font-black text-lg whitespace-nowrap ${t.type ==='income' ?'text-green-600' :'text-black'}`}>
-                      {t.type ==='income' ?'+' :'-'}{t.amount.toLocaleString('no-NO')} kr
-                    </span>
-                    {t.vatAmount > 0 && (
-                      <span className="text-[10px] text-zinc-500 font-bold font-mono">
-                        inkl. MVA {t.vatAmount.toLocaleString('no-NO')}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </button>
+                )}
+              </div>
             ))}
 
             {filteredData.length === 0 && (
