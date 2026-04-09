@@ -9,9 +9,12 @@ import { Card, CardContent } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { InvoiceDetailSheet } from './InvoiceDetailSheet';
 import { Invoice } from '../../types/schema';
+import { useAppStore } from '../../store/useAppStore';
 
 export function InvoiceList() {
   const { t } = useTranslation();
+  const language = useAppStore(state => state.language);
+  const locale = language === 'en' ? 'en-GB' : 'no-NO';
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
 
   const { data: invoices, isLoading } = useQuery({
@@ -27,16 +30,16 @@ export function InvoiceList() {
     const groups: Record<string, Invoice[]> = {};
     if (!invoices) return groups;
     invoices.forEach(i => {
-      const monthStr = new Date(i.issueDate).toLocaleString('no-NO', { month: 'long', year: 'numeric' });
+      const monthStr = new Date(i.issueDate).toLocaleString(locale, { month: 'long', year: 'numeric' });
       const cappedMonthStr = monthStr.charAt(0).toUpperCase() + monthStr.slice(1);
       if (!groups[cappedMonthStr]) groups[cappedMonthStr] = [];
       groups[cappedMonthStr].push(i);
     });
     return groups;
-  }, [invoices]);
+  }, [invoices, locale]);
 
   const [expandedMonths, setExpandedMonths] = useState<Record<string, boolean>>(() => {
-    const currentM = new Date().toLocaleString('no-NO', { month: 'long', year: 'numeric' });
+    const currentM = new Date().toLocaleString(locale, { month: 'long', year: 'numeric' });
     return { [currentM.charAt(0).toUpperCase() + currentM.slice(1)]: true };
   });
   

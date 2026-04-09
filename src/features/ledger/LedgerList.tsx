@@ -6,12 +6,15 @@ import { faArrowUp, faArrowDown, faFileExport, faChevronDown, faChevronRight } f
 import { useTranslation } from '../../lib/i18n';
 import { Transaction } from '../../types/schema';
 import { LedgerEditSheet } from'./LedgerEditSheet';
+import { useAppStore } from '../../store/useAppStore';
 
 export function LedgerList() {
   const { t } = useTranslation();
+  const language = useAppStore(state => state.language);
+  const locale = language === 'en' ? 'en-GB' : 'no-NO';
   const [selectedTx, setSelectedTx] = useState<Transaction | null>(null);
   const [expandedMonths, setExpandedMonths] = useState<Record<string, boolean>>(() => {
-    const currentM = new Date().toLocaleString('no-NO', { month: 'long', year: 'numeric' });
+    const currentM = new Date().toLocaleString(locale, { month: 'long', year: 'numeric' });
     return { [currentM.charAt(0).toUpperCase() + currentM.slice(1)]: true };
   });
   
@@ -116,13 +119,13 @@ export function LedgerList() {
   const groupedData = useMemo(() => {
     const groups: Record<string, Transaction[]> = {};
     filteredData.forEach(t => {
-      const monthStr = new Date(t.date).toLocaleString('no-NO', { month: 'long', year: 'numeric' });
+      const monthStr = new Date(t.date).toLocaleString(locale, { month: 'long', year: 'numeric' });
       const cappedMonthStr = monthStr.charAt(0).toUpperCase() + monthStr.slice(1);
       if (!groups[cappedMonthStr]) groups[cappedMonthStr] = [];
       groups[cappedMonthStr].push(t);
     });
     return groups;
-  }, [filteredData]);
+  }, [filteredData, locale]);
 
   return (
     <div className="space-y-6 pb-20">
