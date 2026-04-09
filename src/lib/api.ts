@@ -205,7 +205,8 @@ export const api = {
  fiscalYear: 'Calendar',
  psd2Connected: false,
  izettleConnected: false,
- altinnConnected: false
+ altinnConnected: false,
+ language: 'no'
  };
  await db.settings.add(config);
  }

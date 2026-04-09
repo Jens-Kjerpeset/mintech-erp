@@ -70,6 +70,8 @@ export function LedgerList() {
       api.contacts.list()
     ]);
     
+    if (!settings) return;
+    
     // 2. Generate
     const { generateJournalEntries, buildSaftXML } = await import('../../lib/saft-engine');
     const journals = generateJournalEntries(invoices, zreports);
