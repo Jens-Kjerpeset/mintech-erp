@@ -133,28 +133,22 @@ export function LedgerList() {
               {uniqueCategories.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
           </div>
-          <div className="space-y-1">
+          <div className="space-y-1 min-w-0">
             <label className="text-xs font-bold tracking-widest">Fra Dato</label>
             <input 
-              type={dateFrom ? "date" : "text"}
-              onFocus={(e) => e.target.type = 'date'}
-              onBlur={(e) => { if (!e.target.value) e.target.type = 'text'; }}
-              placeholder="dd.mm.åååå"
+              type="date"
               value={dateFrom}
               onChange={e => handleFilterChange({ from: e.target.value })}
-              className="w-full max-w-full border-2 border-black px-3 py-2 font-bold focus:outline-none bg-white font-mono"
+              className="w-full min-w-0 appearance-none border-2 border-black px-3 py-2 font-bold focus:outline-none bg-white"
             />
           </div>
-          <div className="space-y-1">
+          <div className="space-y-1 min-w-0">
              <label className="text-xs font-bold tracking-widest">Til Dato</label>
              <input 
-               type={dateTo ? "date" : "text"}
-               onFocus={(e) => e.target.type = 'date'}
-               onBlur={(e) => { if (!e.target.value) e.target.type = 'text'; }}
-               placeholder="dd.mm.åååå"
+               type="date"
                value={dateTo}
                onChange={e => handleFilterChange({ to: e.target.value })}
-               className="w-full max-w-full border-2 border-black px-3 py-2 font-bold focus:outline-none bg-white font-mono"
+               className="w-full min-w-0 appearance-none border-2 border-black px-3 py-2 font-bold focus:outline-none bg-white"
              />
           </div>
         </div>
