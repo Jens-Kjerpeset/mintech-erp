@@ -195,7 +195,7 @@ export const api = {
  iban: 'NO12 1234 5678 9012',
  swift: 'DNBANOKK',
  vippsNumber: '12345',
- logoUrl: 'https://images.unsplash.com/photo-1512418490979-92798cec1380?w=100&h=100&fit=crop&q=80',
+ logoUrl: '/logo.png',
  defaultCreditDays: 14,
  nextInvoiceNumber: 10001,
  defaultNote: 'Takk for handelen!',
@@ -217,7 +217,7 @@ export const api = {
  }
  },
  seedDataIfNeeded: async () => {
- const demoVersion = localStorage.getItem('demo_data_v6');
+ const demoVersion = localStorage.getItem('demo_data_v8');
  if (!demoVersion) {
  await db.settings.clear();
  await db.transactions.clear();
@@ -225,7 +225,7 @@ export const api = {
  await db.contacts.clear();
  await db.products.clear();
  await db.zreports.clear();
- localStorage.setItem('demo_data_v6', 'true');
+ localStorage.setItem('demo_data_v8', 'true');
  } else {
  const txCount = await db.transactions.count();
  if (txCount > 0) return;
@@ -254,13 +254,13 @@ export const api = {
 
  // --- 2. Products (Varelager) ---
  const initialProducts: Product[] = [
- { id: crypto.randomUUID(), name: "Sibirsk Himalayasalt (10kg)", sku: "SALT-001", ean: "7041234567890", unit: "kg", costPriceExVat: 45.00, salesPriceIncVat: 149.00, vatRate: 15, stockQuantity: 124, warningLimit: 20, supplierId: vendorsData[0].id },
- { id: crypto.randomUUID(), name: "Ekte Madagaskar Vaniljestenger (10pk)", sku: "VAN-002", ean: "7041234567891", unit: "stk", costPriceExVat: 350.00, salesPriceIncVat: 899.00, vatRate: 15, stockQuantity: 45, warningLimit: 15, supplierId: vendorsData[0].id },
- { id: crypto.randomUUID(), name: "Røkt Paprika fra Spania (5kg)", sku: "PAP-003", ean: "7041234567892", unit: "kg", costPriceExVat: 85.00, salesPriceIncVat: 249.00, vatRate: 15, stockQuantity: 18, warningLimit: 15, supplierId: vendorsData[0].id },
- { id: crypto.randomUUID(), name: "Økologisk Olivenolje Extra Virgin (10L)", sku: "OLI-004", ean: "7041234567893", unit: "liter", costPriceExVat: 720.00, salesPriceIncVat: 1849.00, vatRate: 15, stockQuantity: 22, warningLimit: 10, supplierId: vendorsData[2].id },
- { id: crypto.randomUUID(), name: "Gourmet Safran (10g)", sku: "SAF-005", ean: "7041234567894", unit: "stk", costPriceExVat: 480.00, salesPriceIncVat: 1299.00, vatRate: 15, stockQuantity: 12, warningLimit: 5, supplierId: vendorsData[0].id },
- { id: crypto.randomUUID(), name: "Gaveeske Eksklusiv m/ Gullbånd", sku: "GAV-006", ean: "7041234567895", unit: "stk", costPriceExVat: 25.00, salesPriceIncVat: 75.00, vatRate: 25, stockQuantity: 210, warningLimit: 50, supplierId: vendorsData[1].id },
- { id: crypto.randomUUID(), name: "Frakt og Ekspedering (Standard)", sku: "FRAKT-1", ean: "", unit: "stk", costPriceExVat: 0.00, salesPriceIncVat: 149.00, vatRate: 25, stockQuantity: 9999, warningLimit: 0, supplierId: vendorsData[3].id }
+ { id: crypto.randomUUID(), type: 'physical', name: "Sibirsk Himalayasalt (10kg)", sku: "SALT-001", ean: "7041234567890", unit: "stk", costPriceExVat: 45.00, salesPriceIncVat: 149.00, vatRate: 15, stockQuantity: 124, warningLimit: 20, supplierId: vendorsData[0].id },
+ { id: crypto.randomUUID(), type: 'physical', name: "Ekte Madagaskar Vaniljestenger (10pk)", sku: "VAN-002", ean: "7041234567891", unit: "stk", costPriceExVat: 350.00, salesPriceIncVat: 899.00, vatRate: 15, stockQuantity: 45, warningLimit: 15, supplierId: vendorsData[0].id },
+ { id: crypto.randomUUID(), type: 'physical', name: "Røkt Paprika fra Spania (5kg)", sku: "PAP-003", ean: "7041234567892", unit: "stk", costPriceExVat: 85.00, salesPriceIncVat: 249.00, vatRate: 15, stockQuantity: 18, warningLimit: 15, supplierId: vendorsData[0].id },
+ { id: crypto.randomUUID(), type: 'physical', name: "Økologisk Olivenolje Extra Virgin (10L)", sku: "OLI-004", ean: "7041234567893", unit: "stk", costPriceExVat: 720.00, salesPriceIncVat: 1849.00, vatRate: 15, stockQuantity: 22, warningLimit: 10, supplierId: vendorsData[2].id },
+ { id: crypto.randomUUID(), type: 'physical', name: "Gourmet Safran (10g)", sku: "SAF-005", ean: "7041234567894", unit: "stk", costPriceExVat: 480.00, salesPriceIncVat: 1299.00, vatRate: 15, stockQuantity: 12, warningLimit: 5, supplierId: vendorsData[0].id },
+ { id: crypto.randomUUID(), type: 'physical', name: "Gaveeske Eksklusiv m/ Gullbånd", sku: "GAV-006", ean: "7041234567895", unit: "stk", costPriceExVat: 25.00, salesPriceIncVat: 75.00, vatRate: 25, stockQuantity: 210, warningLimit: 50, supplierId: vendorsData[1].id },
+ { id: crypto.randomUUID(), type: 'service', name: "Frakt og Ekspedering (Standard)", sku: "FRAKT-1", ean: "", unit: "stk", costPriceExVat: 0.00, salesPriceIncVat: 149.00, vatRate: 25, stockQuantity: null, warningLimit: null, supplierId: vendorsData[3].id }
  ];
 
  const allTransactions: Transaction[] = [];

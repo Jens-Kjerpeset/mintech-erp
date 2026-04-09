@@ -1,73 +1,81 @@
+import React, { createContext, useContext, useState } from 'react';
+import { cn } from '../../lib/utils';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faChevronDown, faChevronUp } from '@fortawesome/free-solid-svg-icons';
-import { Accordion as AccordionPrimitive } from "@base-ui/react/accordion"
+import { faChevronDown } from '@fortawesome/free-solid-svg-icons';
 
+// Mimics @radix-ui/react-accordion structure for local-first architecture
+const AccordionContext = createContext<{
+  value: string | undefined;
+  onValueChange: (value: string) => void;
+} | null>(null);
 
+export const Accordion = ({ type = "single", collapsible = true, className, children, ...props }: any) => {
+  const [value, setValue] = useState<string | undefined>(undefined);
+  
+  return (
+    <AccordionContext.Provider value={{
+      value,
+      onValueChange: (itemValue) => {
+        setValue(value === itemValue && collapsible ? undefined : itemValue);
+      }
+    }}>
+      <div className={cn("space-y-4", className)} {...props}>
+        {children}
+      </div>
+    </AccordionContext.Provider>
+  );
+};
 
-function Accordion({ className, ...props }: AccordionPrimitive.Root.Props) {
- return (
- <AccordionPrimitive.Root
- data-slot="accordion"
- className={["flex w-full flex-col", className].filter(Boolean).join(' ')}
- {...props}
- />
- )
-}
+const AccordionItemContext = createContext<{ value: string; } | null>(null);
 
-function AccordionItem({ className, ...props }: AccordionPrimitive.Item.Props) {
- return (
- <AccordionPrimitive.Item
- data-slot="accordion-item"
- className={["not-last:border-b", className].filter(Boolean).join(' ')}
- {...props}
- />
- )
-}
+export const AccordionItem = ({ value, className, children, ...props }: any) => {
+  return (
+    <AccordionItemContext.Provider value={{ value }}>
+      <div className={cn("border-4 border-[var(--border-brutal)] bg-[var(--card-bg)] shadow-[4px_4px_0_0_rgba(0,0,0,1)] dark:shadow-[4px_4px_0_0_rgba(24,24,27,1)]", className)} {...props}>
+        {children}
+      </div>
+    </AccordionItemContext.Provider>
+  );
+};
 
-function AccordionTrigger({
- className,
- children,
- ...props
-}: AccordionPrimitive.Trigger.Props) {
- return (
- <AccordionPrimitive.Header className="flex">
- <AccordionPrimitive.Trigger
- data-slot="accordion-trigger"
- className={[
- "group/accordion-trigger relative flex flex-1 items-start justify-between rounded-none border border-transparent py-2.5 text-left text-sm font-medium outline-none hover:underline focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:after:border-ring aria-disabled:pointer-events-none aria-disabled:opacity-50 **:data-[slot=accordion-trigger-icon]:ml-auto **:data-[slot=accordion-trigger-icon]:size-4 **:data-[slot=accordion-trigger-icon]:text-muted-foreground",
- className
- ].filter(Boolean).join(' ')}
- {...props}
- >
- {children}
- <FontAwesomeIcon icon={faChevronDown} data-slot="accordion-trigger-icon" className="pointer-events-none shrink-0 group-aria-expanded/accordion-trigger:hidden" />
- <FontAwesomeIcon icon={faChevronUp} data-slot="accordion-trigger-icon" className="pointer-events-none hidden shrink-0 group-aria-expanded/accordion-trigger:inline" />
- </AccordionPrimitive.Trigger>
- </AccordionPrimitive.Header>
- )
-}
+export const AccordionTrigger = ({ className, children, ...props }: any) => {
+  const { value: selectedValue, onValueChange } = useContext(AccordionContext)!;
+  const { value: itemValue } = useContext(AccordionItemContext)!;
+  const isOpen = selectedValue === itemValue;
 
-function AccordionContent({
- className,
- children,
- ...props
-}: AccordionPrimitive.Panel.Props) {
- return (
- <AccordionPrimitive.Panel
- data-slot="accordion-content"
- className="overflow-hidden text-sm "
- {...props}
- >
- <div
- className={[
- "h-(--accordion-panel-height) pt-0 pb-2.5 data-ending-style:h-0 data-starting-style:h-0 [&_a]:underline [&_a]:underline-offset-3 [&_a]:hover:text-foreground [&_p:not(:last-child)]:mb-4",
- className
- ].filter(Boolean).join(' ')}
- >
- {children}
- </div>
- </AccordionPrimitive.Panel>
- )
-}
+  return (
+    <button
+      type="button"
+      onClick={() => onValueChange(itemValue)}
+      className={cn(
+        "flex w-full items-center justify-between p-5 font-black tracking-widest text-lg transition-all hover:bg-[var(--muted-bg)] focus:outline-none [&[data-state=open]>svg]:rotate-180",
+        className
+      )}
+      data-state={isOpen ? "open" : "closed"}
+      {...props}
+    >
+      {children}
+      <FontAwesomeIcon 
+        icon={faChevronDown} 
+        className="h-5 w-5 shrink-0 transition-transform duration-200" 
+      />
+    </button>
+  );
+};
 
-export { Accordion, AccordionItem, AccordionTrigger, AccordionContent }
+export const AccordionContent = ({ className, children, ...props }: any) => {
+  const { value: selectedValue } = useContext(AccordionContext)!;
+  const { value: itemValue } = useContext(AccordionItemContext)!;
+  const isOpen = selectedValue === itemValue;
+
+  if (!isOpen) return null;
+
+  return (
+    <div
+      className={cn("p-5 pt-0 border-t-2 border-[var(--border-brutal)] opacity-80", className)}
+      {...props}
+    >
+      <div className="pt-4">{children}</div>
+    </div>
+  );
+};
