@@ -8,6 +8,7 @@ import { faPlus, faBuilding, faUser, faTimes } from'@fortawesome/free-solid-svg-
 import * as Dialog from'@radix-ui/react-dialog';
 import { ContactForm } from'./ContactForm';
 import { ContactDetailSheet } from'./ContactDetailSheet';
+import { useTranslation } from '../../lib/i18n';
 import { cn } from'../../lib/utils';
 import { Contact } from'../../types/schema';
 
@@ -15,6 +16,7 @@ export function ContactList() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [filter, setFilter] = useState<'Alle' |'Kunde' |'Leverandør'>('Alle');
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
+  const { t } = useTranslation();
 
   const { data: contacts, isLoading } = useQuery({
     queryKey: ['contacts'],
@@ -26,19 +28,19 @@ export function ContactList() {
   return (
     <div className="space-y-6 pb-20">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b-4 border-black pb-4 gap-4">
-        <h1 className="text-3xl font-black tracking-widest">Register</h1>
+        <h1 className="text-3xl font-black tracking-widest">{t('contacts.title')}</h1>
         
         <Dialog.Root open={isModalOpen} onOpenChange={setIsModalOpen}>
           <Dialog.Trigger asChild>
             <Button className="w-full sm:w-auto h-12 text-lg px-8">
-              <FontAwesomeIcon icon={faPlus} className="mr-2" /> Ny Kontakt
+              <FontAwesomeIcon icon={faPlus} className="mr-2" /> {t('contacts.new_contact')}
             </Button>
           </Dialog.Trigger>
           <Dialog.Portal>
             <Dialog.Overlay className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm" />
             <Dialog.Content className="fixed left-[50%] top-[50%] z-50 w-full max-w-lg translate-x-[-50%] translate-y-[-50%] bg-white border-4 border-black p-6 shadow-[8px_8px_0_0_rgba(0,0,0,1)] max-h-[90vh] overflow-y-auto outline-none">
                 <div className="flex justify-between items-center mb-6 border-b-2 border-black pb-2">
-                  <Dialog.Title className="text-2xl font-black tracking-widest">Ny Kontakt</Dialog.Title>
+                  <Dialog.Title className="text-2xl font-black tracking-widest">{t('contacts.new_contact')}</Dialog.Title>
                   <Dialog.Close asChild>
                     <Button variant="outline" size="icon">
                       <FontAwesomeIcon icon={faTimes} />
@@ -53,21 +55,25 @@ export function ContactList() {
 
       {/* Brutalist Custom Toggle Group Filter */}
       <div className="flex bg-white border-4 border-black rounded-none shadow-[4px_4px_0_0_rgba(0,0,0,1)] hover:shadow-none transition-shadow mb-6">
-         {['Alle','Kunde','Leverandør'].map((tab) => (
+         {[
+           { val: 'Alle', label: t('contacts.filter_all') },
+           { val: 'Kunde', label: t('contacts.filter_customer') },
+           { val: 'Leverandør', label: t('contacts.filter_vendor') }
+         ].map((tab) => (
             <button
-               key={tab}
-               onClick={() => setFilter(tab as any)}
+               key={tab.val}
+               onClick={() => setFilter(tab.val as any)}
                className={cn("flex-1 py-3 font-black tracking-widest text-sm transition-colors border-r-4 border-black last:border-r-0 focus:outline-none",
-                 filter === tab ?"bg-black text-white" :"bg-white text-black hover:bg-zinc-100"
+                 filter === tab.val ?"bg-black text-white" :"bg-white text-black hover:bg-zinc-100"
                )}
             >
-               {tab}
+               {tab.label}
             </button>
          ))}
       </div>
 
       {isLoading ? (
-         <div className="text-xl font-bold animate-pulse">Laster kontakter...</div>
+         <div className="text-xl font-bold animate-pulse">{t('contacts.loading')}</div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredContacts.map((contact) => (
@@ -91,11 +97,11 @@ export function ContactList() {
                    {/* Bottom Row / Chips: Type and OrgNumber */}
                    <div className="flex flex-wrap gap-2 pl-[42px] mt-1">
                      <span className="font-bold text-[11px] tracking-widest bg-black text-white px-2 py-1 leading-none rounded-sm">
-                        {contact.relationType}
+                        {contact.relationType === 'Kunde' ? t('contacts.filter_customer') : contact.relationType === 'Leverandør' ? t('contacts.filter_vendor') : contact.relationType}
                      </span>
                      {contact.orgNumber && (
                         <span className="font-mono font-bold text-[11px] tracking-widest border-2 border-black px-2 py-0.5 leading-none rounded-sm text-zinc-600 bg-white">
-                          Org: {contact.orgNumber}
+                          {t('contacts.org')} {contact.orgNumber}
                         </span>
                      )}
                    </div>
@@ -106,7 +112,7 @@ export function ContactList() {
           
           {filteredContacts.length === 0 && (
             <div className="col-span-full p-8 text-center border-4 border-black border-dashed font-black text-xl text-zinc-400 tracking-widest">
-              Ingen kontakter funnet.
+              {t('contacts.no_contacts')}
             </div>
           )}
         </div>

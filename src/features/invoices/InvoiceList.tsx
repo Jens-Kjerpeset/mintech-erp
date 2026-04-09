@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCheckCircle, faClock, faTimesCircle, faPlus, faChevronDown, faChevronRight } from '@fortawesome/free-solid-svg-icons';
+import { useTranslation } from '../../lib/i18n';
 import { api } from '../../lib/api';
 import { Card, CardContent } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
@@ -10,6 +11,7 @@ import { InvoiceDetailSheet } from './InvoiceDetailSheet';
 import { Invoice } from '../../types/schema';
 
 export function InvoiceList() {
+  const { t } = useTranslation();
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
 
   const { data: invoices, isLoading } = useQuery({
@@ -18,7 +20,7 @@ export function InvoiceList() {
   });
 
   if (isLoading) {
-    return <div className="text-xl font-bold animate-pulse">Laster fakturaer...</div>;
+    return <div className="text-xl font-bold animate-pulse">{t('invoices.loading')}</div>;
   }
 
   const groupedData = useMemo(() => {
@@ -56,10 +58,10 @@ export function InvoiceList() {
   return (
     <div className="space-y-6 pb-20">
       <div className="flex justify-between items-center border-b-4 border-black pb-2">
-        <h1 className="text-3xl font-black tracking-widest">Fakturaer</h1>
+        <h1 className="text-3xl font-black tracking-widest">{t('invoices.title')}</h1>
         <Button asChild>
           <Link to="/invoices/new">
-            <FontAwesomeIcon icon={faPlus} className="mr-2" /> Ny Faktura
+            <FontAwesomeIcon icon={faPlus} className="mr-2" /> {t('invoices.new_invoice')}
           </Link>
         </Button>
       </div>
@@ -95,7 +97,7 @@ export function InvoiceList() {
                         </div>
                         <div className="flex justify-between items-center text-sm font-bold text-zinc-500 tracking-widest pt-1">
                           <span className="font-mono">ID: {invoice.id.split('-')[0]}</span>
-                          <span>Forfall: {new Date(invoice.dueDate).toLocaleDateString('no-NO')}</span>
+                          <span>{t('invoices.due')} {new Date(invoice.dueDate).toLocaleDateString('no-NO')}</span>
                         </div>
                         <div className="flex justify-end pt-3 border-t-2 border-black/5 mt-1">
                           <div className="text-3xl font-black font-mono tracking-tight text-black">
@@ -112,7 +114,7 @@ export function InvoiceList() {
         ))}
         {invoices?.length === 0 && (
           <div className="p-8 text-center border-4 border-black border-dashed font-black tracking-widest text-xl text-zinc-400">
-            Ingen fakturaer registrert.
+            {t('invoices.no_invoices')}
           </div>
         )}
       </div>

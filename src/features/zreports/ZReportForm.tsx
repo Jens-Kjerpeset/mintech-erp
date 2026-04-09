@@ -7,6 +7,7 @@ import { api } from '../../lib/api';
 import { Button } from '../../components/ui/button';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSave, faSpinner } from '@fortawesome/free-solid-svg-icons';
+import { useTranslation } from '../../lib/i18n';
 import { cn } from '../../lib/utils';
 
 const zReportSchema = z.object({
@@ -20,6 +21,7 @@ type ZReportFormValues = z.infer<typeof zReportSchema>;
 
 export function ZReportForm({ onSuccess }: { onSuccess?: () => void }) {
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
 
   const { register, handleSubmit, watch, formState: { errors } } = useForm<ZReportFormValues>({
     resolver: zodResolver(zReportSchema),
@@ -71,7 +73,7 @@ export function ZReportForm({ onSuccess }: { onSuccess?: () => void }) {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       <p className="text-xs font-bold tracking-widest text-zinc-500 mb-6 border-l-4 border-black pl-3 py-1">
-        Eventuelle kassedifferanser vil automatisk bokføres i hovedboken mot konto for Drift.
+        {t('zreport_form.info_text')}
       </p>
 
       {cashDifference !== 0 && (
@@ -79,14 +81,14 @@ export function ZReportForm({ onSuccess }: { onSuccess?: () => void }) {
           "p-4 border-4 border-black font-black tracking-widest text-lg flex justify-between items-center mb-4",
           cashDifference < 0 ? "bg-red-500 text-white" : "bg-yellow-400 text-black"
         )}>
-          <span>{cashDifference < 0 ? 'Manko' : 'Overskudd'}</span>
+          <span>{cashDifference < 0 ? t('zreports.shortage') : t('zreports.surplus')}</span>
           <span className="font-mono">{cashDifference > 0 ? '+' : ''}{cashDifference.toLocaleString('no-NO')} kr</span>
         </div>
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-zinc-50 p-4 border-4 border-black">
         <div className="space-y-2">
-          <label className="font-bold text-sm tracking-wider">Kortsalg *</label>
+          <label className="font-bold text-sm tracking-wider">{t('zreport_form.card_sales')}</label>
           <input 
             type="number" step="0.01"
             {...register('cardSales')} 
@@ -96,7 +98,7 @@ export function ZReportForm({ onSuccess }: { onSuccess?: () => void }) {
         </div>
 
         <div className="space-y-2">
-          <label className="font-bold text-sm tracking-wider">Vipps-salg *</label>
+          <label className="font-bold text-sm tracking-wider">{t('zreport_form.vipps_sales')}</label>
           <input 
              type="number" step="0.01"
             {...register('vippsSales')} 
@@ -106,7 +108,7 @@ export function ZReportForm({ onSuccess }: { onSuccess?: () => void }) {
         </div>
 
         <div className="space-y-2">
-          <label className="font-bold text-sm tracking-wider text-zinc-500">Forventet Kontant *</label>
+          <label className="font-bold text-sm tracking-wider text-zinc-500">{t('zreport_form.expected_cash')}</label>
           <input 
              type="number" step="0.01"
             {...register('expectedCash')} 
@@ -115,7 +117,7 @@ export function ZReportForm({ onSuccess }: { onSuccess?: () => void }) {
         </div>
 
         <div className="space-y-2">
-          <label className="font-bold text-sm tracking-wider">Opptalt Kontant *</label>
+          <label className="font-bold text-sm tracking-wider">{t('zreport_form.actual_cash')}</label>
           <input 
              type="number" step="0.01"
             {...register('actualCash')} 
@@ -125,7 +127,7 @@ export function ZReportForm({ onSuccess }: { onSuccess?: () => void }) {
       </div>
 
       <div className="bg-black text-white p-4 flex justify-between items-center text-xl tracking-widest font-black">
-         <span>Bruttoomsetning</span>
+         <span>{t('zreport_form.gross_sales')}</span>
          <span className="font-mono">{grossSales.toLocaleString('no-NO')} kr</span>
       </div>
 
@@ -137,9 +139,9 @@ export function ZReportForm({ onSuccess }: { onSuccess?: () => void }) {
           size="lg"
         >
           {createMutation.isPending ? (
-            <><FontAwesomeIcon icon={faSpinner} className="animate-spin mr-2" /> Bokfører...</>
+            <><FontAwesomeIcon icon={faSpinner} className="animate-spin mr-2" /> {t('zreport_form.saving')}</>
           ) : (
-            <><FontAwesomeIcon icon={faSave} className="mr-2" /> Bokfør Z-Rapport</>
+            <><FontAwesomeIcon icon={faSave} className="mr-2" /> {t('zreport_form.save_btn')}</>
           )}
         </Button>
       </div>

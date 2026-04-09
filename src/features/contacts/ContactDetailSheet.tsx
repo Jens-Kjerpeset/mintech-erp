@@ -8,9 +8,11 @@ import { faTimes, faEdit, faTrash, faSpinner } from '@fortawesome/free-solid-svg
 import { cn } from '../../lib/utils';
 import { Contact } from '../../types/schema';
 import { ContactForm } from './ContactForm';
+import { useTranslation } from '../../lib/i18n';
 
 export function ContactDetailSheet({ contact, onClose }: { contact: Contact | null, onClose: () => void }) {
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
   const isOpen = !!contact;
   const [isEditing, setIsEditing] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false); 
@@ -111,26 +113,26 @@ export function ContactDetailSheet({ contact, onClose }: { contact: Contact | nu
                         setIsEditing(false);
                     }} 
                   />
-               ) : (
+                ) : (
                   <div className="space-y-6">
                     <div className="bg-zinc-50 p-6 border-2 border-black space-y-4">
                         <div>
-                           <div className="font-bold text-xs text-zinc-500 tracking-widest mb-1">Type</div>
-                           <div className="font-black text-lg">{contact.relationType}</div>
+                           <div className="font-bold text-xs text-zinc-500 tracking-widest mb-1">{t('contact_detail.type')}</div>
+                           <div className="font-black text-lg">{contact.relationType === 'Kunde' ? t('contacts.filter_customer') : contact.relationType === 'Leverandør' ? t('contacts.filter_vendor') : contact.relationType}</div>
                         </div>
                         {contact.orgNumber && (
                            <div>
-                              <div className="font-bold text-xs text-zinc-500 tracking-widest mb-1">Org. Nummer</div>
+                              <div className="font-bold text-xs text-zinc-500 tracking-widest mb-1">{t('contact_detail.org_number')}</div>
                               <div className="font-mono font-black text-lg">{contact.orgNumber}</div>
                            </div>
                         )}
                         <div>
-                           <div className="font-bold text-xs text-zinc-500 tracking-widest mb-1">E-post</div>
+                           <div className="font-bold text-xs text-zinc-500 tracking-widest mb-1">{t('contact_detail.email')}</div>
                            <div className="font-black text-lg">{contact.email || '-'}</div>
                         </div>
                         <div>
-                           <div className="font-bold text-xs text-zinc-500 tracking-widest mb-1">Standard Kredittid</div>
-                           <div className="font-black text-lg">{contact.paymentTermsDays || 14} Dager</div>
+                           <div className="font-bold text-xs text-zinc-500 tracking-widest mb-1">{t('contact_detail.credit_days')}</div>
+                           <div className="font-black text-lg">{contact.paymentTermsDays || 14} {t('contact_detail.days')}</div>
                         </div>
                     </div>
                   </div>
@@ -138,13 +140,13 @@ export function ContactDetailSheet({ contact, onClose }: { contact: Contact | nu
             </div>
 
             {/* Sticky Action Footer - Only show if not editing, as form has its own save */}
-            {!isEditing && (
+             {!isEditing && (
               <div className="flex-none p-4 bg-white border-t-4 border-black sticky bottom-0 flex gap-4 pb-8 w-full z-10">
                  <Button 
                    className="flex-1 h-14 text-lg bg-black text-white hover:bg-zinc-800" 
                    onClick={() => setIsEditing(true)}
                  >
-                    <FontAwesomeIcon icon={faEdit} className="mr-2" /> Rediger
+                    <FontAwesomeIcon icon={faEdit} className="mr-2" /> {t('contact_detail.edit')}
                  </Button>
                  
                  <Button 
@@ -154,11 +156,11 @@ export function ContactDetailSheet({ contact, onClose }: { contact: Contact | nu
                    disabled={deleteMutation.isPending}
                  >
                    {deleteMutation.isPending ? (
-                     <><FontAwesomeIcon icon={faSpinner} className="animate-spin mr-2" /> Sletter...</>
+                     <><FontAwesomeIcon icon={faSpinner} className="animate-spin mr-2" /> {t('contact_detail.deleting')}</>
                    ) : isDeleting ? (
-                     <><FontAwesomeIcon icon={faTrash} className="mr-2" /> Bekreft Slett</>
+                     <><FontAwesomeIcon icon={faTrash} className="mr-2" /> {t('contact_detail.confirm_delete')}</>
                    ) : (
-                     <><FontAwesomeIcon icon={faTrash} className="mr-2" /> Slett</>
+                     <><FontAwesomeIcon icon={faTrash} className="mr-2" /> {t('contact_detail.delete')}</>
                    )}
                  </Button>
               </div>

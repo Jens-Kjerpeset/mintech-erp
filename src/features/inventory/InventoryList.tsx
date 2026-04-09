@@ -9,11 +9,13 @@ import * as Dialog from'@radix-ui/react-dialog';
 import { ProductForm } from'./ProductForm';
 import { ProductDetailSheet } from'./ProductDetailSheet';
 import { Product } from'../../types/schema';
+import { useTranslation } from '../../lib/i18n';
 import { cn } from'../../lib/utils';
 
 export function InventoryList() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const { t } = useTranslation();
 
   const { data: products, isLoading } = useQuery({
     queryKey: ['products'],
@@ -21,7 +23,7 @@ export function InventoryList() {
   });
 
   if (isLoading) {
-    return <div className="text-xl font-bold animate-pulse">Laster varelager...</div>;
+    return <div className="text-xl font-bold animate-pulse">{t('inventory.loading')}</div>;
   }
 
   const getProductIcon = (product: Product) => {
@@ -35,19 +37,19 @@ export function InventoryList() {
   return (
     <div className="space-y-6 pb-20">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b-4 border-black pb-4 gap-4">
-        <h1 className="text-3xl font-black tracking-widest">Varelager</h1>
+        <h1 className="text-3xl font-black tracking-widest">{t('inventory.title')}</h1>
         
         <Dialog.Root open={isModalOpen} onOpenChange={setIsModalOpen}>
           <Dialog.Trigger asChild>
             <Button className="w-full sm:w-auto h-12 text-lg px-8">
-              <FontAwesomeIcon icon={faPlus} className="mr-2" /> Ny Vare
+              <FontAwesomeIcon icon={faPlus} className="mr-2" /> {t('inventory.new_item')}
             </Button>
           </Dialog.Trigger>
           <Dialog.Portal>
             <Dialog.Overlay className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm" />
             <Dialog.Content className="fixed left-[50%] top-[50%] z-50 w-full max-w-lg translate-x-[-50%] translate-y-[-50%] bg-white border-4 border-black p-6 shadow-[8px_8px_0_0_rgba(0,0,0,1)] max-h-[90vh] overflow-y-auto outline-none">
                 <div className="flex justify-between items-center mb-6 border-b-2 border-black pb-2">
-                  <Dialog.Title className="text-2xl font-black tracking-widest">Ny Vare</Dialog.Title>
+                  <Dialog.Title className="text-2xl font-black tracking-widest">{t('inventory.new_item')}</Dialog.Title>
                   <Dialog.Close asChild>
                     <Button variant="outline" size="icon">
                       <FontAwesomeIcon icon={faTimes} />
@@ -87,17 +89,17 @@ export function InventoryList() {
                     <div className={cn("flex items-end", isService ?"justify-end" :"justify-between")}>
                       {!isService && (
                         <div>
-                          <div className="text-xs font-bold tracking-widest text-zinc-500 mb-1">Beholdning</div>
+                          <div className="text-xs font-bold tracking-widest text-zinc-500 mb-1">{t('inventory.stock')}</div>
                           <div className={cn("text-3xl font-black font-mono leading-none",
                             isLowStock ?"text-red-600" :"text-black"
                           )}>
-                            {product.stockQuantity} <span className="text-sm font-sans tracking-tight text-zinc-500 font-bold">{product.unit ||'stk'}</span>
+                            {product.stockQuantity} <span className="text-sm font-sans tracking-tight text-zinc-500 font-bold">{product.unit || t('inventory.unit_default')}</span>
                           </div>
                         </div>
                       )}
                       
                       <div className="text-right">
-                        <div className="text-xs font-bold tracking-widest text-zinc-500 mb-1">Pris</div>
+                        <div className="text-xs font-bold tracking-widest text-zinc-500 mb-1">{t('inventory.price')}</div>
                         <div className="text-xl font-bold font-mono leading-none">{product.salesPriceIncVat.toLocaleString('no-NO')} kr</div>
                       </div>
                     </div>
@@ -110,7 +112,7 @@ export function InventoryList() {
         
         {products?.length === 0 && (
           <div className="col-span-full p-8 text-center border-4 border-black border-dashed font-black text-xl text-zinc-400 tracking-widest">
-            Ingen varer registrert.
+            {t('inventory.no_items')}
           </div>
         )}
       </div>

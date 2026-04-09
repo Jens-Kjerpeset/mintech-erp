@@ -7,6 +7,7 @@ import { api } from '../../lib/api';
 import { Button } from '../../components/ui/button';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSave, faSpinner } from '@fortawesome/free-solid-svg-icons';
+import { useTranslation } from '../../lib/i18n';
 
 const contactSchema = z.object({
   name: z.string().min(2, 'Navn må ha minst 2 tegn'),
@@ -27,6 +28,7 @@ type ContactFormValues = z.infer<typeof contactSchema>;
 
 export function ContactForm({ onSuccess, initialData }: { onSuccess?: () => void, initialData?: any }) {
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
 
   const { register, handleSubmit, watch, formState: { errors } } = useForm<ContactFormValues>({
     resolver: zodResolver(contactSchema),
@@ -63,18 +65,18 @@ export function ContactForm({ onSuccess, initialData }: { onSuccess?: () => void
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2 col-span-full">
-          <label className="font-bold text-sm tracking-wider">Type Relasjon</label>
+          <label className="font-bold text-sm tracking-wider">{t('contact_form.relation_type')}</label>
           <select 
             {...register('relationType')} 
             className="w-full border-2 border-black px-4 py-3 font-bold focus:outline-none focus:ring-2 focus:ring-black bg-white"
           >
-            <option value="Kunde">Kunde (Customer)</option>
-            <option value="Leverandør">Leverandør (Vendor)</option>
+            <option value="Kunde">{t('contact_form.customer')}</option>
+            <option value="Leverandør">{t('contact_form.vendor')}</option>
           </select>
         </div>
 
         <div className="space-y-2 col-span-full">
-          <label className="font-bold text-sm tracking-wider">Navn / Selskap *</label>
+          <label className="font-bold text-sm tracking-wider">{t('contact_form.name')}</label>
           <input 
             {...register('name')} 
             className="w-full border-2 border-black px-4 py-3 font-bold focus:outline-none focus:ring-2 focus:ring-black"
@@ -83,7 +85,7 @@ export function ContactForm({ onSuccess, initialData }: { onSuccess?: () => void
         </div>
 
         <div className="space-y-2">
-          <label className="font-bold text-sm tracking-wider">OrgNummer {relationType === 'Leverandør' ? '*' : '(For B2B)'}</label>
+          <label className="font-bold text-sm tracking-wider">{t('contact_form.org_number')} {relationType === 'Leverandør' ? '*' : '(For B2B)'}</label>
           <input 
             {...register('orgNumber')} 
             className="w-full border-2 border-black px-4 py-3 font-mono font-bold focus:outline-none focus:ring-2 focus:ring-black"
@@ -92,7 +94,7 @@ export function ContactForm({ onSuccess, initialData }: { onSuccess?: () => void
         </div>
 
         <div className="space-y-2">
-          <label className="font-bold text-sm tracking-wider">E-post</label>
+          <label className="font-bold text-sm tracking-wider">{t('contact_form.email')}</label>
           <input 
             {...register('email')} 
             className="w-full border-2 border-black px-4 py-3 font-bold focus:outline-none focus:ring-2 focus:ring-black"
@@ -101,7 +103,7 @@ export function ContactForm({ onSuccess, initialData }: { onSuccess?: () => void
         </div>
 
         <div className="space-y-2">
-          <label className="font-bold text-sm tracking-wider">Standard Kredittid (Dager)</label>
+          <label className="font-bold text-sm tracking-wider">{t('contact_form.credit_days')}</label>
           <input 
             type="number"
             {...register('paymentTermsDays')} 
@@ -116,9 +118,9 @@ export function ContactForm({ onSuccess, initialData }: { onSuccess?: () => void
           disabled={createMutation.isPending}
         >
           {createMutation.isPending ? (
-            <><FontAwesomeIcon icon={faSpinner} className="animate-spin mr-2" /> Lagrer...</>
+            <><FontAwesomeIcon icon={faSpinner} className="animate-spin mr-2" /> {t('contact_form.saving')}</>
           ) : (
-            <><FontAwesomeIcon icon={faSave} className="mr-2" /> Lagre Kontakt</>
+            <><FontAwesomeIcon icon={faSave} className="mr-2" /> {t('contact_form.save_btn')}</>
           )}
         </Button>
       </div>

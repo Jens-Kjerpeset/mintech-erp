@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { useDrag } from '@use-gesture/react';
 import { useAppStore } from '../../store/useAppStore';
 import { Link } from 'react-router-dom';
+import { useTranslation } from '../../lib/i18n';
 import { cn } from '../../lib/utils';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTimes, faHome, faFileInvoice, faBox, faCog, faUsers, faBookJournalWhills, faCashRegister } from '@fortawesome/free-solid-svg-icons';
@@ -9,6 +10,7 @@ import { Button } from '../ui/button';
 
 export function BottomSheet() {
   const { isBottomSheetOpen, setBottomSheetOpen } = useAppStore();
+  const { t } = useTranslation();
 
   const bind = useDrag(({ movement: [, my], velocity: [, vy], direction: [, dy], cancel, last }) => {
     if (my < -50) cancel();
@@ -70,25 +72,25 @@ export function BottomSheet() {
 
         <nav className="flex-1 px-6 flex flex-col gap-4 overflow-y-auto">
           <Link to="/" onClick={() => setBottomSheetOpen(false)} className="flex items-center gap-4 text-xl font-bold tracking-wide border-2 border-[var(--border-brutal)] p-4 hover:bg-[var(--muted-bg)] transition-colors">
-            <FontAwesomeIcon icon={faHome} className="w-6" /> Dashboard
+            <FontAwesomeIcon icon={faHome} className="w-6" /> {t('nav.dashboard')}
           </Link>
           <Link to="/invoices" onClick={() => setBottomSheetOpen(false)} className="flex items-center gap-4 text-xl font-bold tracking-wide border-2 border-[var(--border-brutal)] p-4 hover:bg-[var(--muted-bg)] transition-colors">
-            <FontAwesomeIcon icon={faFileInvoice} className="w-6" /> Faktura
+            <FontAwesomeIcon icon={faFileInvoice} className="w-6" /> {t('nav.invoices')}
           </Link>
           <Link to="/contacts" onClick={() => setBottomSheetOpen(false)} className="flex items-center gap-4 text-xl font-bold tracking-wide border-2 border-[var(--border-brutal)] p-4 hover:bg-[var(--muted-bg)] transition-colors">
-             <FontAwesomeIcon icon={faUsers} className="w-6" /> Kontakter
+             <FontAwesomeIcon icon={faUsers} className="w-6" /> {t('nav.contacts')}
           </Link>
           <Link to="/inventory" onClick={() => setBottomSheetOpen(false)} className="flex items-center gap-4 text-xl font-bold tracking-wide border-2 border-[var(--border-brutal)] p-4 hover:bg-[var(--muted-bg)] transition-colors">
-            <FontAwesomeIcon icon={faBox} className="w-6" /> Varelager
+            <FontAwesomeIcon icon={faBox} className="w-6" /> {t('nav.inventory')}
           </Link>
           <Link to="/zreports" onClick={() => setBottomSheetOpen(false)} className="flex items-center gap-4 text-xl font-bold tracking-wide border-2 border-[var(--border-brutal)] p-4 hover:bg-[var(--muted-bg)] transition-colors">
-            <FontAwesomeIcon icon={faCashRegister} className="w-6" /> Kasseoppgjør
+            <FontAwesomeIcon icon={faCashRegister} className="w-6" /> {t('nav.pos')}
           </Link>
           <Link to="/hovedbok" onClick={() => setBottomSheetOpen(false)} className="flex items-center gap-4 text-xl font-bold tracking-wide border-2 border-[var(--border-brutal)] p-4 hover:bg-[var(--muted-bg)] transition-colors">
-            <FontAwesomeIcon icon={faBookJournalWhills} className="w-6" /> Hovedbok
+            <FontAwesomeIcon icon={faBookJournalWhills} className="w-6" /> {t('nav.ledger')}
           </Link>
           <Link to="/settings" onClick={() => setBottomSheetOpen(false)} className="flex items-center gap-4 text-xl font-bold tracking-wide border-2 border-[var(--border-brutal)] p-4 hover:bg-[var(--muted-bg)] transition-colors">
-            <FontAwesomeIcon icon={faCog} className="w-6" /> Innstillinger
+            <FontAwesomeIcon icon={faCog} className="w-6" /> {t('nav.settings')}
           </Link>
         </nav>
       </aside>

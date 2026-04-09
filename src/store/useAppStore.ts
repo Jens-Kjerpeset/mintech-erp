@@ -7,6 +7,8 @@ interface AppState {
   toggleBottomSheet: () => void;
   theme: 'light' | 'dark';
   setTheme: (theme: 'light' | 'dark') => void;
+  language: 'no' | 'en';
+  setLanguage: (lang: 'no' | 'en') => void;
 }
 
 export const useAppStore = create<AppState>()(
@@ -17,6 +19,8 @@ export const useAppStore = create<AppState>()(
       toggleBottomSheet: () => set((state) => ({ isBottomSheetOpen: !state.isBottomSheetOpen })),
       theme: 'light',
       setTheme: (theme) => set({ theme }),
+      language: 'no',
+      setLanguage: (language) => set({ language }),
     }),
     {
       name: 'mintech-theme-storage',

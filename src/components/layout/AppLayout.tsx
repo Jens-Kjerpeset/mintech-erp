@@ -11,6 +11,7 @@ import { api } from '../../lib/api';
 export function AppLayout() {
   const toggleBottomSheet = useAppStore(state => state.toggleBottomSheet);
   const theme = useAppStore(state => state.theme);
+  const setLanguage = useAppStore(state => state.setLanguage);
   const [imageError, setImageError] = useState(false);
 
   const { data: settings } = useQuery({
@@ -26,6 +27,12 @@ export function AppLayout() {
   useEffect(() => {
     setImageError(false);
   }, [settings?.logoUrl]);
+
+  useEffect(() => {
+    if (settings?.language) {
+      setLanguage(settings.language as 'no' | 'en');
+    }
+  }, [settings?.language, setLanguage]);
 
   useEffect(() => {
     if (theme === 'dark') {

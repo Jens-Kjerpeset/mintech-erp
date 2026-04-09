@@ -228,9 +228,10 @@ interface InvoicePDFProps {
   invoice: Invoice;
   settings: Settings;
   contact?: Contact | null;
+  t: (path: string) => string;
 }
 
-export const InvoicePDF = ({ invoice, settings, contact }: InvoicePDFProps) => {
+export const InvoicePDF = ({ invoice, settings, contact, t }: InvoicePDFProps) => {
   // Safe default grouping
   const vatGroups = invoice.items.reduce((acc, item) => {
     const rate = item.vatRate || invoice.taxRate || 0;
@@ -269,17 +270,17 @@ export const InvoicePDF = ({ invoice, settings, contact }: InvoicePDFProps) => {
           </View>
 
           <View style={styles.metaBox}>
-            <Text style={styles.fakturaTitle}>Faktura</Text>
+            <Text style={styles.fakturaTitle}>{t('invoice_pdf.title')}</Text>
             <View style={styles.metaGrid}>
-              <Text style={styles.metaLabel}>Fakturanummer:</Text>
+              <Text style={styles.metaLabel}>{t('invoice_pdf.invoice_number')}</Text>
               <Text style={styles.metaValue}>{invoice.id.split('-')[0]}</Text>
             </View>
             <View style={styles.metaGrid}>
-              <Text style={styles.metaLabel}>Fakturadato:</Text>
+              <Text style={styles.metaLabel}>{t('invoice_pdf.issue_date')}</Text>
               <Text style={styles.metaValue}>{new Date(invoice.issueDate).toLocaleDateString('no-NO')}</Text>
             </View>
             <View style={styles.metaGrid}>
-              <Text style={styles.metaLabel}>Forfallsdato:</Text>
+              <Text style={styles.metaLabel}>{t('invoice_pdf.due_date')}</Text>
               <Text style={styles.metaValue}>{new Date(invoice.dueDate).toLocaleDateString('no-NO')}</Text>
             </View>
           </View>
@@ -287,7 +288,7 @@ export const InvoicePDF = ({ invoice, settings, contact }: InvoicePDFProps) => {
 
         {/* Section B: Buyer Info */}
         <View style={styles.buyerSection}>
-          <Text style={styles.buyerTitle}>Fakturert til:</Text>
+          <Text style={styles.buyerTitle}>{t('invoice_pdf.billed_to')}</Text>
           <Text style={styles.buyerName}>{invoice.clientName}</Text>
           {contact?.address && <Text style={styles.buyerDetail}>{contact.address}</Text>}
           {(contact?.zipCode || contact?.city) && (
@@ -300,12 +301,12 @@ export const InvoicePDF = ({ invoice, settings, contact }: InvoicePDFProps) => {
         {/* Section C: Payload Table */}
         <View style={styles.table}>
           <View style={styles.tableHeader}>
-            <Text style={[styles.tableHeaderCell, styles.colDesc]}>Beskrivelse</Text>
-            <Text style={[styles.tableHeaderCell, styles.colQty]}>Antall</Text>
-            <Text style={[styles.tableHeaderCell, styles.colUnit]}>Enhet</Text>
-            <Text style={[styles.tableHeaderCell, styles.colPrice]}>Pris</Text>
-            <Text style={[styles.tableHeaderCell, styles.colVat]}>MVA %</Text>
-            <Text style={[styles.tableHeaderCell, styles.colTotal]}>Sum</Text>
+            <Text style={[styles.tableHeaderCell, styles.colDesc]}>{t('invoice_pdf.desc')}</Text>
+            <Text style={[styles.tableHeaderCell, styles.colQty]}>{t('invoice_pdf.qty')}</Text>
+            <Text style={[styles.tableHeaderCell, styles.colUnit]}>{t('invoice_pdf.unit')}</Text>
+            <Text style={[styles.tableHeaderCell, styles.colPrice]}>{t('invoice_pdf.price')}</Text>
+            <Text style={[styles.tableHeaderCell, styles.colVat]}>{t('invoice_pdf.vat_pct')}</Text>
+            <Text style={[styles.tableHeaderCell, styles.colTotal]}>{t('invoice_pdf.sum')}</Text>
           </View>
           
           {invoice.items.map((item, idx) => {
@@ -328,19 +329,19 @@ export const InvoicePDF = ({ invoice, settings, contact }: InvoicePDFProps) => {
         <View style={styles.totalsSection}>
           <View style={styles.totalsBox}>
             <View style={styles.totalRow}>
-              <Text style={styles.totalLabel}>Sum eks. mva</Text>
+              <Text style={styles.totalLabel}>{t('invoice_pdf.sum_ex_vat')}</Text>
               <Text style={styles.totalValue}>{invoice.subtotal.toFixed(2)} kr</Text>
             </View>
             
             {vatRates.map((v) => (
               <View key={v.rate} style={styles.vatRow}>
-                <Text style={styles.vatLabel}>MVA Grunnlag {v.rate}% ({v.grunnlag.toFixed(2)})</Text>
+                <Text style={styles.vatLabel}>{t('invoice_pdf.vat_base')} {v.rate}% ({v.grunnlag.toFixed(2)})</Text>
                 <Text style={styles.vatValueMono}>{v.mva.toFixed(2)} kr</Text>
               </View>
             ))}
 
             <View style={styles.grandTotalWrap}>
-              <Text style={styles.grandTotalLabel}>Å Betale</Text>
+              <Text style={styles.grandTotalLabel}>{t('invoice_pdf.amount_due')}</Text>
               <Text style={styles.grandTotalValue}>{totalSum.toFixed(2)} kr</Text>
             </View>
           </View>
@@ -349,8 +350,8 @@ export const InvoicePDF = ({ invoice, settings, contact }: InvoicePDFProps) => {
         {/* Section E: Footer Routing */}
         <View style={styles.footer}>
           <View style={styles.footerCol}>
-            <Text style={styles.footerTitle}>Betalingsinformasjon</Text>
-            <Text style={styles.footerText}>Bankkonto: {settings.bankAccount || 'Ventes'}</Text>
+            <Text style={styles.footerTitle}>{t('invoice_pdf.payment_info')}</Text>
+            <Text style={styles.footerText}>{t('invoice_pdf.bank_account')} {settings.bankAccount || t('invoice_pdf.pending')}</Text>
             <Text style={styles.footerText}>KID: {invoice.id.split('-')[0].replace(/\D/g, '') || '-'}</Text>
           </View>
           <View style={styles.footerCol}>
@@ -362,7 +363,7 @@ export const InvoicePDF = ({ invoice, settings, contact }: InvoicePDFProps) => {
              )}
           </View>
           <View style={styles.footerCol}>
-            <Text style={styles.footerTitle}>Foretak</Text>
+            <Text style={styles.footerTitle}>{t('invoice_pdf.company')}</Text>
             <Text style={styles.footerText}>{settings.companyName}</Text>
             <Text style={styles.footerText}>Org.nr: {settings.orgNumber}</Text>
             {settings.defaultNote && <Text style={styles.footerNote}>{settings.defaultNote}</Text>}

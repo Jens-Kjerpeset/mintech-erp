@@ -8,12 +8,14 @@ import { faTimes, faEdit, faTrash, faSpinner, faMinus, faPlus } from'@fortawesom
 import { cn } from'../../lib/utils';
 import { Product } from'../../types/schema';
 import { ProductForm } from'./ProductForm';
+import { useTranslation } from '../../lib/i18n';
 
 export function ProductDetailSheet({ product, onClose }: { product: Product | null, onClose: () => void }) {
   const queryClient = useQueryClient();
   const isOpen = !!product;
   const [isEditing, setIsEditing] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false); 
+  const { t } = useTranslation();
 
   const bind = useDrag(({ movement: [, my], velocity: [, vy], direction: [, dy], cancel, last }) => {
     if (isEditing) cancel();
@@ -109,7 +111,7 @@ export function ProductDetailSheet({ product, onClose }: { product: Product | nu
                     SKU: {product.sku}
                   </span>
                   <span className="font-bold text-xs bg-black text-white px-2 py-1 tracking-widest">
-                    {product.type ==='service' ?'Tjeneste' :'Fysisk'}
+                    {product.type ==='service' ? t('product_detail.service') : t('product_detail.physical')}
                   </span>
                 </div>
               </div>
@@ -130,7 +132,7 @@ export function ProductDetailSheet({ product, onClose }: { product: Product | nu
                     {/* Stepper Control - Only for physical items */}
                     {product.type !=='service' && (
                         <div className="bg-black p-4 text-white flex flex-col items-center gap-4">
-                           <span className="font-bold tracking-widest text-sm text-zinc-400">Aktiv Beholdning</span>
+                           <span className="font-bold tracking-widest text-sm text-zinc-400">{t('product_detail.active_stock')}</span>
                            <div className="flex items-center justify-between w-full max-w-[250px] bg-white text-black p-1 border-2 border-black">
                                <button 
                                  onClick={() => handleAdjustStock(-1)} 
@@ -157,27 +159,27 @@ export function ProductDetailSheet({ product, onClose }: { product: Product | nu
 
                     <div className="grid grid-cols-2 gap-4">
                         <div className="bg-zinc-50 p-4 border-2 border-black text-center">
-                           <div className="font-bold text-xs text-zinc-500 tracking-widest mb-1">Pris (Inkl. MVA)</div>
+                           <div className="font-bold text-xs text-zinc-500 tracking-widest mb-1">{t('product_detail.sales_price')}</div>
                            <div className="font-mono font-black text-xl">{product.salesPriceIncVat.toLocaleString('no-NO')} kr</div>
                         </div>
                         <div className="bg-zinc-50 p-4 border-2 border-black text-center">
-                           <div className="font-bold text-xs text-zinc-500 tracking-widest mb-1">Kostpris (Eks. MVA)</div>
+                           <div className="font-bold text-xs text-zinc-500 tracking-widest mb-1">{t('product_detail.cost_price')}</div>
                            <div className="font-mono font-bold text-lg">{product.costPriceExVat.toLocaleString('no-NO')} kr</div>
                         </div>
                     </div>
 
                     <div className="bg-zinc-50 p-4 border-2 border-black space-y-4">
                         <div className="flex justify-between items-center border-b border-black/10 pb-2">
-                           <span className="font-bold text-xs text-zinc-500 tracking-widest">MVA-sats</span>
+                           <span className="font-bold text-xs text-zinc-500 tracking-widest">{t('product_detail.vat_rate')}</span>
                            <span className="font-mono font-bold text-black text-lg">{product.vatRate}%</span>
                         </div>
                         <div className="flex justify-between items-center border-b border-black/10 pb-2">
-                           <span className="font-bold text-xs text-zinc-500 tracking-widest">Enhet</span>
-                           <span className="font-bold text-black text-lg">{product.unit ||'stk'}</span>
+                           <span className="font-bold text-xs text-zinc-500 tracking-widest">{t('product_detail.unit')}</span>
+                           <span className="font-bold text-black text-lg">{product.unit || t('inventory.unit_default')}</span>
                         </div>
                         {product.type !=='service' && (
                             <div className="flex justify-between items-center text-red-600">
-                               <span className="font-bold text-xs tracking-widest overflow-hidden">Varslingsgrense</span>
+                               <span className="font-bold text-xs tracking-widest overflow-hidden">{t('product_detail.warning_limit')}</span>
                                <span className="font-mono font-bold text-lg">{product.warningLimit || 0}</span>
                             </div>
                         )}
@@ -189,11 +191,11 @@ export function ProductDetailSheet({ product, onClose }: { product: Product | nu
             {/* Sticky Action Footer */}
             {!isEditing && (
               <div className="flex-none p-4 bg-white border-t-4 border-black sticky bottom-0 flex gap-4 pb-8 w-full z-10">
-                 <Button 
+                  <Button 
                    className="flex-1 h-14 text-lg bg-black text-white hover:bg-zinc-800" 
                    onClick={() => setIsEditing(true)}
                  >
-                    <FontAwesomeIcon icon={faEdit} className="mr-2" /> Rediger
+                    <FontAwesomeIcon icon={faEdit} className="mr-2" /> {t('product_detail.edit')}
                  </Button>
                  
                  <Button 
@@ -203,11 +205,11 @@ export function ProductDetailSheet({ product, onClose }: { product: Product | nu
                    disabled={deleteMutation.isPending}
                  >
                    {deleteMutation.isPending ? (
-                     <><FontAwesomeIcon icon={faSpinner} className="animate-spin mr-2" /> Sletter...</>
+                     <><FontAwesomeIcon icon={faSpinner} className="animate-spin mr-2" /> {t('product_detail.deleting')}</>
                    ) : isDeleting ? (
-                     <><FontAwesomeIcon icon={faTrash} className="mr-2" /> Bekreft Slett</>
+                     <><FontAwesomeIcon icon={faTrash} className="mr-2" /> {t('product_detail.confirm_delete')}</>
                    ) : (
-                     <><FontAwesomeIcon icon={faTrash} className="mr-2" /> Slett</>
+                     <><FontAwesomeIcon icon={faTrash} className="mr-2" /> {t('product_detail.delete')}</>
                    )}
                  </Button>
               </div>

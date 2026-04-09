@@ -3,10 +3,12 @@ import { useQuery } from'@tanstack/react-query';
 import { api } from'../../lib/api';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowUp, faArrowDown, faFileExport, faChevronDown, faChevronRight } from '@fortawesome/free-solid-svg-icons';
+import { useTranslation } from '../../lib/i18n';
 import { Transaction } from '../../types/schema';
 import { LedgerEditSheet } from'./LedgerEditSheet';
 
 export function LedgerList() {
+  const { t } = useTranslation();
   const [selectedTx, setSelectedTx] = useState<Transaction | null>(null);
   const [expandedMonths, setExpandedMonths] = useState<Record<string, boolean>>(() => {
     const currentM = new Date().toLocaleString('no-NO', { month: 'long', year: 'numeric' });
@@ -125,35 +127,35 @@ export function LedgerList() {
   return (
     <div className="space-y-6 pb-20">
       <div className="flex flex-col border-b-4 border-black pb-4 gap-4">
-        <h1 className="text-3xl font-black tracking-widest">Hovedbok</h1>
+        <h1 className="text-3xl font-black tracking-widest">{t('ledger.title')}</h1>
         
         {/* Filters Panel */}
         <div className="bg-zinc-100 p-4 border-2 border-black grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
           <div className="space-y-1">
-            <label className="text-xs font-bold tracking-widest">Type</label>
+            <label className="text-xs font-bold tracking-widest">{t('ledger.filter_type')}</label>
             <select 
               value={typeFilter} 
               onChange={e => handleFilterChange({ type: e.target.value })}
               className="w-full border-2 border-black px-3 py-2 font-bold focus:outline-none bg-white"
             >
-              <option value="all">Alle</option>
-              <option value="income">Inntekt</option>
-              <option value="expense">Utgift</option>
+              <option value="all">{t('ledger.filter_all')}</option>
+              <option value="income">{t('ledger.filter_income')}</option>
+              <option value="expense">{t('ledger.filter_expense')}</option>
             </select>
           </div>
           <div className="space-y-1">
-            <label className="text-xs font-bold tracking-widest">Kategori</label>
+            <label className="text-xs font-bold tracking-widest">{t('ledger.filter_category')}</label>
             <select 
               value={categoryFilter} 
               onChange={e => handleFilterChange({ category: e.target.value })}
               className="w-full border-2 border-black px-3 py-2 font-bold focus:outline-none bg-white max-w-full truncate"
             >
-              <option value="all">Alle Kategorier</option>
+              <option value="all">{t('ledger.filter_category_all')}</option>
               {uniqueCategories.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
           </div>
           <div className="space-y-1 min-w-0">
-            <label className="text-xs font-bold tracking-widest">Fra Dato</label>
+            <label className="text-xs font-bold tracking-widest">{t('ledger.date_from')}</label>
             <input 
               type="date"
               value={dateFrom}
@@ -162,7 +164,7 @@ export function LedgerList() {
             />
           </div>
           <div className="space-y-1 min-w-0">
-             <label className="text-xs font-bold tracking-widest">Til Dato</label>
+             <label className="text-xs font-bold tracking-widest">{t('ledger.date_to')}</label>
              <input 
                type="date"
                value={dateTo}
@@ -174,11 +176,11 @@ export function LedgerList() {
       </div>
 
       {isLoading ? (
-        <div className="text-xl font-bold animate-pulse">Laster hovedbok...</div>
+        <div className="text-xl font-bold animate-pulse">{t('ledger.loading')}</div>
       ) : (
         <div className="relative">
           {/* Transition overlay */}
-          {isPending && <div className="absolute inset-0 bg-white/70 backdrop-blur-[1px] z-10 flex items-center justify-center font-black text-xl animate-pulse text-black">Filtrerer Data...</div>}
+          {isPending && <div className="absolute inset-0 bg-white/70 backdrop-blur-[1px] z-10 flex items-center justify-center font-black text-xl animate-pulse text-black">{t('ledger.filtering')}</div>}
           
           <div className="flex justify-between items-center mb-4 flex-wrap gap-4">
              <button
@@ -186,19 +188,19 @@ export function LedgerList() {
                 className="flex items-center gap-2 border-2 border-black bg-white px-4 py-2 font-bold text-black hover:bg-zinc-100 active:scale-95 transition-all text-sm shadow-[2px_2px_0_0_rgba(0,0,0,1)] active:shadow-none"
              >
                 <FontAwesomeIcon icon={faFileExport} />
-                Eksportér SAF-T (XML)
+                {t('ledger.export_saft')}
              </button>
              <div className="flex items-center gap-2">
-                <span className="text-xs font-bold tracking-widest text-zinc-500">Sorter etter:</span>
+                <span className="text-xs font-bold tracking-widest text-zinc-500">{t('ledger.sort_by')}</span>
                 <select 
                   value={sortBy}
                   onChange={e => handleFilterChange({ sortBy: e.target.value })}
                   className="border-2 border-black px-3 py-1 font-bold focus:outline-none bg-white text-sm"
                 >
-                  <option value="date_desc">Dato (Nyeste først)</option>
-                  <option value="date_asc">Dato (Eldste først)</option>
-                  <option value="amount_desc">Beløp (Høyeste først)</option>
-                  <option value="amount_asc">Beløp (Laveste først)</option>
+                  <option value="date_desc">{t('ledger.sort_date_desc')}</option>
+                  <option value="date_asc">{t('ledger.sort_date_asc')}</option>
+                  <option value="amount_desc">{t('ledger.sort_amount_desc')}</option>
+                  <option value="amount_asc">{t('ledger.sort_amount_asc')}</option>
                 </select>
              </div>
           </div>
@@ -224,7 +226,7 @@ export function LedgerList() {
                       >
                         <div className="border-2 border-black bg-white p-4 flex justify-between items-center hover:bg-zinc-50 transition-colors">
                           <div className="flex flex-col gap-1 w-full overflow-hidden mr-4">
-                            <span className="font-bold truncate text-[15px]">{t.description || 'Ingen beskrivelse'}</span>
+                            <span className="font-bold truncate text-[15px]">{t.description || t('ledger.no_description')}</span>
                             <span className="text-sm tracking-widest text-zinc-500 font-bold whitespace-nowrap overflow-hidden text-ellipsis">
                                {new Date(t.date).toLocaleDateString('no-NO')} • {t.category}
                             </span>
@@ -235,7 +237,7 @@ export function LedgerList() {
                             </span>
                             {t.vatAmount > 0 && (
                               <span className="text-[10px] text-zinc-500 font-bold font-mono">
-                                inkl. MVA {t.vatAmount.toLocaleString('no-NO')}
+                                {t('ledger.inc_vat')} {t.vatAmount.toLocaleString('no-NO')}
                               </span>
                             )}
                           </div>
@@ -249,7 +251,7 @@ export function LedgerList() {
 
             {filteredData.length === 0 && (
               <div className="p-8 text-center border-4 border-black border-dashed font-black tracking-widest text-xl text-zinc-400">
-                Ingen transaksjoner funnet for valgt filter
+                {t('ledger.no_transactions')}
               </div>
             )}
           </div>

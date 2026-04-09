@@ -5,6 +5,7 @@ import { api } from '../../lib/api';
 import { Button } from '../../components/ui/button';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTimes, faFilePdf, faCheck, faSpinner } from '@fortawesome/free-solid-svg-icons';
+import { useTranslation } from '../../lib/i18n';
 import { cn } from '../../lib/utils';
 import { Invoice } from '../../types/schema';
 import { pdf } from '@react-pdf/renderer';
@@ -12,6 +13,7 @@ import { InvoicePDF } from './InvoicePDF';
 
 export function InvoiceDetailSheet({ invoice, onClose }: { invoice: Invoice | null, onClose: () => void }) {
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
   const isOpen = !!invoice;
   const [isGenerating, setIsGenerating] = useState(false);
 
@@ -61,7 +63,7 @@ export function InvoiceDetailSheet({ invoice, onClose }: { invoice: Invoice | nu
     if (!invoice || !settings) return;
     try {
       setIsGenerating(true);
-      const doc = <InvoicePDF invoice={invoice} settings={settings} contact={currentContact} />;
+      const doc = <InvoicePDF invoice={invoice} settings={settings} contact={currentContact} t={t} />;
       const blob = await pdf(doc).toBlob();
       const invoiceNumber = invoice.id.split('-')[0];
       const filename = `Faktura-${invoiceNumber}.pdf`;
@@ -136,18 +138,18 @@ export function InvoiceDetailSheet({ invoice, onClose }: { invoice: Invoice | nu
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4 bg-zinc-50 p-4 border-2 border-black">
                   <div>
-                    <span className="block font-bold text-xs text-zinc-500 tracking-widest">Fakturadato</span>
+                    <span className="block font-bold text-xs text-zinc-500 tracking-widest">{t('invoice_detail.issue_date')}</span>
                     <span className="font-mono font-bold text-lg">{new Date(invoice.issueDate).toLocaleDateString('no-NO')}</span>
                   </div>
                   <div>
-                    <span className="block font-bold text-xs text-zinc-500 tracking-widest">Forfallsdato</span>
+                    <span className="block font-bold text-xs text-zinc-500 tracking-widest">{t('invoice_detail.due_date')}</span>
                     <span className="font-mono font-bold text-lg">{new Date(invoice.dueDate).toLocaleDateString('no-NO')}</span>
                   </div>
                 </div>
 
                 <div className="border-4 border-black">
                   <div className="bg-black text-white p-3 font-bold tracking-widest text-sm flex justify-between">
-                    <span>Varelinjer</span>
+                    <span>{t('invoice_detail.line_items')}</span>
                   </div>
                   <div className="divide-y-2 divide-black">
                     {invoice.items.map((item, idx) => (
@@ -162,15 +164,15 @@ export function InvoiceDetailSheet({ invoice, onClose }: { invoice: Invoice | nu
                   </div>
                   <div className="bg-zinc-100 p-4 space-y-2 border-t-2 border-black font-mono">
                     <div className="flex justify-between items-center text-sm font-bold text-zinc-600">
-                      <span className="font-sans tracking-widest">Delsum</span>
+                      <span className="font-sans tracking-widest">{t('invoice_detail.subtotal')}</span>
                       <span>{invoice.subtotal.toLocaleString('no-NO')} kr</span>
                     </div>
                     <div className="flex justify-between items-center text-sm font-bold text-zinc-600 border-b border-zinc-300 pb-2">
-                       <span className="font-sans tracking-widest">MVA ({invoice.taxRate}%)</span>
+                       <span className="font-sans tracking-widest">{t('invoice_detail.vat')} ({invoice.taxRate}%)</span>
                        <span>{(invoice.total - invoice.subtotal).toLocaleString('no-NO')} kr</span>
                     </div>
                     <div className="flex justify-between items-center text-xl font-black pt-2">
-                      <span className="font-sans tracking-widest text-lg">Total</span>
+                      <span className="font-sans tracking-widest text-lg">{t('invoice_detail.total')}</span>
                       <span>{invoice.total.toLocaleString('no-NO')} kr</span>
                     </div>
                   </div>
@@ -187,9 +189,9 @@ export function InvoiceDetailSheet({ invoice, onClose }: { invoice: Invoice | nu
                  onClick={handleDownloadPDF}
                >
                  {isGenerating ? (
-                    <><FontAwesomeIcon icon={faSpinner} className="animate-spin mr-2" /> Genererer PDF...</>
+                    <><FontAwesomeIcon icon={faSpinner} className="animate-spin mr-2" /> {t('invoice_detail.generating_pdf')}</>
                  ) : (
-                    <><FontAwesomeIcon icon={faFilePdf} className="mr-2" /> Last Ned PDF</>
+                    <><FontAwesomeIcon icon={faFilePdf} className="mr-2" /> {t('invoice_detail.download_pdf')}</>
                  )}
                </Button>
                
@@ -200,9 +202,9 @@ export function InvoiceDetailSheet({ invoice, onClose }: { invoice: Invoice | nu
                    disabled={updateMutation.isPending}
                  >
                    {updateMutation.isPending ? (
-                     <><FontAwesomeIcon icon={faSpinner} className="animate-spin mr-2" /> Oppdaterer...</>
+                     <><FontAwesomeIcon icon={faSpinner} className="animate-spin mr-2" /> {t('invoice_detail.updating')}</>
                    ) : (
-                     <><FontAwesomeIcon icon={faCheck} className="mr-2" /> Marker som Betalt</>
+                     <><FontAwesomeIcon icon={faCheck} className="mr-2" /> {t('invoice_detail.mark_paid')}</>
                    )}
                  </Button>
                )}

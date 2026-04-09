@@ -9,6 +9,7 @@ import { Button } from '../../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTrash, faPlus, faArrowLeft } from '@fortawesome/free-solid-svg-icons';
+import { useTranslation } from '../../lib/i18n';
 
 const invoiceItemSchema = z.object({
   productId: z.string().min(1, 'Produkt påkrevd'),
@@ -34,6 +35,7 @@ type InvoiceFormValues = z.infer<typeof invoiceSchema>;
 export function InvoiceForm() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
 
   const { data: contacts } = useQuery({
     queryKey: ['contacts'],
@@ -111,29 +113,29 @@ export function InvoiceForm() {
           type="button" 
           className="flex items-center gap-2 font-bold tracking-widest text-zinc-500 hover:text-black transition-colors min-h-[44px] min-w-[44px]"
         >
-          <FontAwesomeIcon icon={faArrowLeft} /> Tilbake
+          <FontAwesomeIcon icon={faArrowLeft} /> {t('invoice_form.back')}
         </button>
         
         <h1 className="text-3xl font-black tracking-widest">
-          Ny Faktura
+          {t('invoice_form.title')}
         </h1>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         <Card>
           <CardHeader>
-            <CardTitle>Kundedetaljer</CardTitle>
+            <CardTitle>{t('invoice_form.client_details')}</CardTitle>
           </CardHeader>
           <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2 col-span-full md:col-span-1">
-              <label className="font-bold text-sm tracking-wider">Velg Kunde *</label>
+              <label className="font-bold text-sm tracking-wider">{t('invoice_form.select_client')}</label>
               <select 
                 {...register('contactId')} 
                 className="w-full border-2 border-black px-4 py-2 font-bold focus:outline-none focus:ring-2 focus:ring-black bg-white"
               >
-                <option value="">-- Velg fra register --</option>
+                <option value="">{t('invoice_form.select_placeholder')}</option>
                 {contacts?.filter(c => c.relationType === 'Kunde' || c.relationType === 'Alle').map(contact => (
-                   <option key={contact.id} value={contact.id}>{contact.name} ({contact.orgNumber || 'Ingen Org'})</option>
+                   <option key={contact.id} value={contact.id}>{contact.name} ({contact.orgNumber || t('invoice_form.no_org')})</option>
                 ))}
               </select>
               {errors.contactId && <p className="text-red-600 font-bold text-xs">{errors.contactId.message}</p>}
@@ -146,7 +148,7 @@ export function InvoiceForm() {
             </div>
 
             <div className="space-y-2">
-              <label className="font-bold text-sm tracking-wider">Fakturadato *</label>
+              <label className="font-bold text-sm tracking-wider">{t('invoice_form.issue_date')}</label>
               <input 
                 type="date"
                 {...register('issueDate')} 
@@ -154,7 +156,7 @@ export function InvoiceForm() {
               />
             </div>
             <div className="space-y-2">
-              <label className="font-bold text-sm tracking-wider">Forfallsdato (Auto) *</label>
+              <label className="font-bold text-sm tracking-wider">{t('invoice_form.due_date_auto')}</label>
               <input 
                 type="date"
                 {...register('dueDate')} 
@@ -167,23 +169,23 @@ export function InvoiceForm() {
 
         <Card>
           <CardHeader className="flex flex-row justify-between items-center">
-            <CardTitle>Varelinjer</CardTitle>
+            <CardTitle>{t('invoice_form.line_items')}</CardTitle>
             <Button type="button" variant="outline" size="sm" onClick={() => append({ productId: crypto.randomUUID(), description: '', quantity: 1, price: 0, vatRate: 25 })}>
-              <FontAwesomeIcon icon={faPlus} className="mr-2" /> Legg til
+              <FontAwesomeIcon icon={faPlus} className="mr-2" /> {t('invoice_form.add_item')}
             </Button>
           </CardHeader>
           <CardContent className="space-y-4">
             {fields.map((field, index) => (
               <div key={field.id} className="flex flex-col md:flex-row gap-4 items-start md:items-center bg-zinc-50 p-4 border-2 border-black">
                 <div className="flex-1 space-y-2 w-full">
-                  <input placeholder="Beskrivelse" {...register(`items.${index}.description`)} className="w-full border-2 border-black px-4 py-2 font-bold focus:outline-none" />
+                  <input placeholder={t('invoice_form.desc_placeholder')} {...register(`items.${index}.description`)} className="w-full border-2 border-black px-4 py-2 font-bold focus:outline-none" />
                   {errors.items?.[index]?.description && <p className="text-red-600 font-bold text-xs">{errors.items[index]?.description?.message}</p>}
                 </div>
                 <div className="w-full md:w-24 space-y-2">
-                   <input type="number" placeholder="Antall" {...register(`items.${index}.quantity`)} className="w-full border-2 border-black px-4 py-2 font-bold focus:outline-none" />
+                   <input type="number" placeholder={t('invoice_form.qty_placeholder')} {...register(`items.${index}.quantity`)} className="w-full border-2 border-black px-4 py-2 font-bold focus:outline-none" />
                 </div>
                 <div className="w-full md:w-32 space-y-2">
-                   <input type="number" step="0.01" placeholder="Pris eks. MVA" {...register(`items.${index}.price`)} className="w-full border-2 border-black px-4 py-2 font-bold focus:outline-none" />
+                   <input type="number" step="0.01" placeholder={t('invoice_form.price_placeholder')} {...register(`items.${index}.price`)} className="w-full border-2 border-black px-4 py-2 font-bold focus:outline-none" />
                 </div>
                  <div className="w-full md:w-24 space-y-2">
                    <select {...register(`items.${index}.vatRate`)} className="w-full border-2 border-black px-4 py-2 font-bold focus:outline-none bg-white">
@@ -204,24 +206,24 @@ export function InvoiceForm() {
         <Card className="bg-black text-white">
            <CardContent className="p-6">
              <div className="flex justify-between items-center border-b border-zinc-800 pb-4 mb-4">
-               <span className="font-bold tracking-widest text-zinc-400">Delsum</span>
+               <span className="font-bold tracking-widest text-zinc-400">{t('invoice_detail.subtotal')}</span>
                <span className="font-black text-xl">{subtotal.toLocaleString('no-NO')} kr</span>
              </div>
              <div className="flex justify-between items-center border-b border-zinc-800 pb-4 mb-4">
-               <span className="font-bold tracking-widest text-zinc-400">MVA</span>
+               <span className="font-bold tracking-widest text-zinc-400">{t('invoice_detail.vat')}</span>
                <span className="font-black text-xl">{totalVat.toLocaleString('no-NO')} kr</span>
              </div>
              <div className="flex justify-between items-center">
-               <span className="font-black tracking-widest text-2xl">Total</span>
+               <span className="font-black tracking-widest text-2xl">{t('invoice_detail.total')}</span>
                <span className="font-black text-4xl">{total.toLocaleString('no-NO')} kr</span>
              </div>
            </CardContent>
         </Card>
 
         <div className="flex justify-end gap-4 mt-8">
-           <Button type="button" variant="outline" className="min-h-[44px]" onClick={() => navigate(-1)}>Avbryt</Button>
+           <Button type="button" variant="outline" className="min-h-[44px]" onClick={() => navigate(-1)}>{t('invoice_form.cancel')}</Button>
            <Button type="submit" className="min-h-[44px]" disabled={createMutation.isPending}>
-             {createMutation.isPending ? 'Lagrer...' : 'Opprett Faktura'}
+             {createMutation.isPending ? t('invoice_form.saving') : t('invoice_form.create_btn')}
            </Button>
         </div>
       </form>

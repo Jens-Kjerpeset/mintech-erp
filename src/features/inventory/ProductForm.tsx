@@ -7,6 +7,7 @@ import { api } from'../../lib/api';
 import { Button } from'../../components/ui/button';
 import { FontAwesomeIcon } from'@fortawesome/react-fontawesome';
 import { faSave, faSpinner } from'@fortawesome/free-solid-svg-icons';
+import { useTranslation } from '../../lib/i18n';
 
 const productSchema = z.object({
   type: z.enum(['physical','service']).default('physical'),
@@ -25,6 +26,7 @@ type ProductFormValues = z.infer<typeof productSchema>;
 
 export function ProductForm({ onSuccess, initialData }: { onSuccess?: () => void, initialData?: any }) {
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
 
   const { data: contacts } = useQuery({
     queryKey: ['contacts'],
@@ -81,18 +83,18 @@ export function ProductForm({ onSuccess, initialData }: { onSuccess?: () => void
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-zinc-50 p-4 border-2 border-black">
         <div className="space-y-2 col-span-full mb-2">
-          <label className="font-bold text-sm tracking-wider">Varetype *</label>
+          <label className="font-bold text-sm tracking-wider">{t('product_form.type')}</label>
            <select 
             {...register('type')} 
             className="w-full border-2 border-black px-4 py-3 font-bold focus:outline-none focus:ring-2 focus:ring-black bg-white tracking-widest text-sm"
           >
-            <option value="physical">Fysisk Vare</option>
-            <option value="service">Tjeneste</option>
+            <option value="physical">{t('product_form.type_physical')}</option>
+            <option value="service">{t('product_form.type_service')}</option>
           </select>
         </div>
 
         <div className="space-y-2 col-span-full">
-          <label className="font-bold text-sm tracking-wider">Varenavn *</label>
+          <label className="font-bold text-sm tracking-wider">{t('product_form.name')}</label>
           <input 
             {...register('name')} 
             className="w-full border-2 border-black px-4 py-3 font-bold focus:outline-none focus:ring-2 focus:ring-black bg-white"
@@ -101,7 +103,7 @@ export function ProductForm({ onSuccess, initialData }: { onSuccess?: () => void
         </div>
 
         <div className="space-y-2">
-          <label className="font-bold text-sm tracking-wider">Varekode (SKU) *</label>
+          <label className="font-bold text-sm tracking-wider">{t('product_form.sku')}</label>
           <input 
             {...register('sku')} 
             className="w-full border-2 border-black px-4 py-3 font-mono font-bold focus:outline-none focus:ring-2 focus:ring-black bg-white"
@@ -110,17 +112,17 @@ export function ProductForm({ onSuccess, initialData }: { onSuccess?: () => void
         </div>
 
         <div className="space-y-2">
-          <label className="font-bold text-sm tracking-wider">Enhet *</label>
+          <label className="font-bold text-sm tracking-wider">{t('product_form.unit')}</label>
           <input 
             {...register('unit')} 
-            placeholder="f.eks stk, kg, timer"
+            placeholder={t('product_form.unit_placeholder')}
             className="w-full border-2 border-black px-4 py-3 font-bold focus:outline-none focus:ring-2 focus:ring-black bg-white"
           />
           {errors.unit && <p className="text-red-600 font-bold text-xs">{errors.unit.message}</p>}
         </div>
 
         <div className="space-y-2">
-          <label className="font-bold text-sm tracking-wider">Kostpris (Eks. MVA)</label>
+          <label className="font-bold text-sm tracking-wider">{t('product_form.cost_price')}</label>
           <input 
              type="number" step="0.01"
             {...register('costPriceExVat')} 
@@ -130,7 +132,7 @@ export function ProductForm({ onSuccess, initialData }: { onSuccess?: () => void
         </div>
 
         <div className="space-y-2">
-          <label className="font-bold text-sm tracking-wider">Salgspris (Inkl. MVA) *</label>
+          <label className="font-bold text-sm tracking-wider">{t('product_form.sales_price')}</label>
           <input 
              type="number" step="0.01"
             {...register('salesPriceIncVat')} 
@@ -140,26 +142,26 @@ export function ProductForm({ onSuccess, initialData }: { onSuccess?: () => void
         </div>
 
         <div className="space-y-2">
-          <label className="font-bold text-sm tracking-wider">MVA-Sats *</label>
+          <label className="font-bold text-sm tracking-wider">{t('product_form.vat_rate')}</label>
           <select 
             {...register('vatRate')} 
             className="w-full border-2 border-black px-4 py-3 font-mono font-bold focus:outline-none focus:ring-2 focus:ring-black bg-white"
           >
-            <option value={25}>Standard (25%)</option>
-            <option value={15}>Mat/Drikke (15%)</option>
-            <option value={12}>Person/Kino (12%)</option>
-            <option value={0}>Fritatt (0%)</option>
+            <option value={25}>{t('product_form.vat_25')}</option>
+            <option value={15}>{t('product_form.vat_15')}</option>
+            <option value={12}>{t('product_form.vat_12')}</option>
+            <option value={0}>{t('product_form.vat_0')}</option>
           </select>
           {errors.vatRate && <p className="text-red-600 font-bold text-xs">{errors.vatRate.message}</p>}
         </div>
 
         <div className="space-y-2 col-span-full">
-          <label className="font-bold text-sm tracking-wider">Leverandør (Valgfri)</label>
+          <label className="font-bold text-sm tracking-wider">{t('product_form.supplier')}</label>
            <select 
             {...register('supplierId')} 
             className="w-full border-2 border-black px-4 py-3 font-bold focus:outline-none focus:ring-2 focus:ring-black bg-white"
           >
-            <option value="">-- Ingen valgt --</option>
+            <option value="">{t('product_form.supplier_none')}</option>
             {contacts?.filter(c => c.relationType ==='Leverandør').map((contact) => (
                <option key={contact.id} value={contact.id}>{contact.name} ({contact.orgNumber})</option>
             ))}
@@ -169,7 +171,7 @@ export function ProductForm({ onSuccess, initialData }: { onSuccess?: () => void
         {selectedType ==='physical' && (
           <>
             <div className="space-y-2">
-              <label className="font-bold text-sm tracking-wider text-black">Aktiv Beholdning</label>
+              <label className="font-bold text-sm tracking-wider text-black">{t('product_form.active_stock')}</label>
               <input 
                  type="number"
                 {...register('stockQuantity')} 
@@ -178,7 +180,7 @@ export function ProductForm({ onSuccess, initialData }: { onSuccess?: () => void
             </div>
 
             <div className="space-y-2">
-              <label className="font-bold text-sm tracking-wider text-black">Varslingsgrense</label>
+              <label className="font-bold text-sm tracking-wider text-black">{t('product_form.warning_limit')}</label>
               <input 
                  type="number"
                 {...register('warningLimit')} 
@@ -196,9 +198,9 @@ export function ProductForm({ onSuccess, initialData }: { onSuccess?: () => void
           className="w-full sm:w-auto min-h-[50px] text-lg px-8"
         >
           {saveMutation.isPending ? (
-            <><FontAwesomeIcon icon={faSpinner} className="animate-spin mr-2" /> Lagrer...</>
+            <><FontAwesomeIcon icon={faSpinner} className="animate-spin mr-2" /> {t('product_form.saving')}</>
           ) : (
-            <><FontAwesomeIcon icon={faSave} className="mr-2" /> Lagre Vare</>
+            <><FontAwesomeIcon icon={faSave} className="mr-2" /> {t('product_form.save_btn')}</>
           )}
         </Button>
       </div>

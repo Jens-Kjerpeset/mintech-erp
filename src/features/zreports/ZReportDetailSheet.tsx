@@ -3,11 +3,13 @@ import { useDrag } from'@use-gesture/react';
 import { Button } from'../../components/ui/button';
 import { FontAwesomeIcon } from'@fortawesome/react-fontawesome';
 import { faTimes, faFilePdf, faCashRegister } from'@fortawesome/free-solid-svg-icons';
+import { useTranslation } from '../../lib/i18n';
 import { cn } from'../../lib/utils';
 import { ZReport } from'../../types/schema';
 
 export function ZReportDetailSheet({ report, onClose }: { report: ZReport | null, onClose: () => void }) {
   const isOpen = !!report;
+  const { t } = useTranslation();
 
   const bind = useDrag(({ movement: [, my], velocity: [, vy], direction: [, dy], cancel, last }) => {
     if (my < -50) cancel();
@@ -58,7 +60,7 @@ export function ZReportDetailSheet({ report, onClose }: { report: ZReport | null
             <div className="px-6 flex justify-between items-start mb-4 flex-none border-b-4 border-black pb-4">
               <div>
                  <h2 className="text-2xl font-black tracking-widest flex items-center gap-2">
-                    <FontAwesomeIcon icon={faCashRegister} /> Z-Rapport
+                    <FontAwesomeIcon icon={faCashRegister} /> {t('zreports.z_report')}
                  </h2>
                  <div className="flex items-center gap-3 mt-2">
                     <span className="font-bold text-sm bg-black text-white px-2 py-0.5 tracking-widest font-mono">
@@ -79,26 +81,26 @@ export function ZReportDetailSheet({ report, onClose }: { report: ZReport | null
                 
                 {/* Omsetning (Gross Sales) */}
                 <div className="bg-black text-white p-6 shadow-md border-2 border-black flex flex-col items-start gap-1">
-                    <span className="text-sm text-zinc-400 font-bold tracking-widest">Omsetning</span>
+                    <span className="text-sm text-zinc-400 font-bold tracking-widest">{t('zreports.gross_sales')}</span>
                     <span className="font-mono font-black text-4xl whitespace-nowrap">{report.grossSales.toLocaleString('no-NO')} kr</span>
                 </div>
 
                 {/* Betalingsmidler (Tenders) */}
                 <div className="border-2 border-black bg-zinc-50 p-4">
                    <h3 className="font-black text-lg tracking-widest border-b-2 border-black pb-2 mb-4">
-                     Betalingsmidler
+                     {t('zreport_detail.tenders')}
                    </h3>
                    <div className="space-y-3">
                        <div className="flex justify-between items-center">
-                           <span className="font-bold text-sm tracking-widest text-zinc-600">Kortsalg</span>
+                           <span className="font-bold text-sm tracking-widest text-zinc-600">{t('zreport_detail.card_sales')}</span>
                            <span className="font-mono font-bold text-lg">{report.cardSales.toLocaleString('no-NO')} kr</span>
                        </div>
                        <div className="flex justify-between items-center">
-                           <span className="font-bold text-sm tracking-widest text-zinc-600">Vipps</span>
+                           <span className="font-bold text-sm tracking-widest text-zinc-600">{t('zreport_detail.vipps')}</span>
                            <span className="font-mono font-bold text-lg">{report.vippsSales.toLocaleString('no-NO')} kr</span>
                        </div>
                        <div className="flex justify-between items-center py-2 border-t border-black/10">
-                           <span className="font-bold text-sm tracking-widest text-zinc-600">Opptelt Kontant</span>
+                           <span className="font-bold text-sm tracking-widest text-zinc-600">{t('zreport_detail.counted_cash')}</span>
                            <span className="font-mono font-bold text-lg">{report.actualCash.toLocaleString('no-NO')} kr</span>
                        </div>
                        
@@ -110,7 +112,7 @@ export function ZReportDetailSheet({ report, onClose }: { report: ZReport | null
                                :"border-yellow-500 bg-yellow-100 text-yellow-900"
                        )}>
                            <span className="tracking-widest text-xs font-black font-sans">
-                             {report.cashDifference === 0 ?'Perfekt Balanse' : report.cashDifference < 0 ?'Manko' :'Overskudd'}
+                             {report.cashDifference === 0 ? t('zreport_detail.perfect_balance') : report.cashDifference < 0 ? t('zreports.shortage') : t('zreports.surplus')}
                            </span>
                            <span className="text-xl">
                              {report.cashDifference > 0 ?'+' :''}{report.cashDifference.toLocaleString('no-NO')} kr
@@ -122,19 +124,19 @@ export function ZReportDetailSheet({ report, onClose }: { report: ZReport | null
                 {/* MVA Grunnlag */}
                 <div className="border-2 border-black bg-white p-4">
                    <h3 className="font-black text-lg tracking-widest border-b-2 border-black pb-2 mb-4">
-                     MVA-Grunnlag
+                     {t('zreport_detail.vat_base')}
                    </h3>
                    <div className="space-y-3">
                        <div className="flex justify-between items-center">
-                           <span className="font-bold text-sm tracking-widest text-zinc-600">MVA 25%</span>
+                           <span className="font-bold text-sm tracking-widest text-zinc-600">{t('zreport_detail.vat_25')}</span>
                            <span className="font-mono font-bold">{report.vat25.toLocaleString('no-NO')} kr</span>
                        </div>
                        <div className="flex justify-between items-center">
-                           <span className="font-bold text-sm tracking-widest text-zinc-600">MVA 15%</span>
+                           <span className="font-bold text-sm tracking-widest text-zinc-600">{t('zreport_detail.vat_15')}</span>
                            <span className="font-mono font-bold">{report.vat15.toLocaleString('no-NO')} kr</span>
                        </div>
                        <div className="flex justify-between items-center text-zinc-400">
-                           <span className="font-bold text-sm tracking-widest">MVA 0%</span>
+                           <span className="font-bold text-sm tracking-widest">{t('zreport_detail.vat_0')}</span>
                            <span className="font-mono font-bold">{report.vat0.toLocaleString('no-NO')} kr</span>
                        </div>
                    </div>
@@ -142,17 +144,17 @@ export function ZReportDetailSheet({ report, onClose }: { report: ZReport | null
 
             </div>
 
-            {/* Sticky Action Footer - Immutable, Only Print/Download */}
+             {/* Sticky Action Footer - Immutable, Only Print/Download */}
             <div className="flex-none p-4 bg-white border-t-4 border-black sticky bottom-0 w-full z-10 flex gap-4">
                <Button 
                   className="flex-1 h-14 text-lg bg-black text-white hover:bg-zinc-800" 
                   onClick={() => {
                      // In a real app this would trigger a PDF download of the Z-report
                      // or window.print() if configured for POS systems.
-                     alert("Kvittering funksjonalitet ikke implementert i demo.");
+                     alert(t('zreport_detail.print_not_implemented'));
                   }}
                >
-                  <FontAwesomeIcon icon={faFilePdf} className="mr-2" /> Se Kvittering
+                  <FontAwesomeIcon icon={faFilePdf} className="mr-2" /> {t('zreport_detail.view_receipt')}
                </Button>
             </div>
           </div>

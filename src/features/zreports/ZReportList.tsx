@@ -8,12 +8,14 @@ import { faPlus, faCashRegister, faTimes } from '@fortawesome/free-solid-svg-ico
 import * as Dialog from '@radix-ui/react-dialog';
 import { ZReportForm } from './ZReportForm';
 import { ZReportDetailSheet } from './ZReportDetailSheet';
+import { useTranslation } from '../../lib/i18n';
 import { cn } from '../../lib/utils';
 import { ZReport } from '../../types/schema';
 
 export function ZReportList() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedReport, setSelectedReport] = useState<ZReport | null>(null);
+  const { t } = useTranslation();
 
   const { data: reports, isLoading } = useQuery({
     queryKey: ['zreports'],
@@ -23,12 +25,12 @@ export function ZReportList() {
   return (
     <div className="space-y-6 pb-24">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b-4 border-black pb-4 gap-4">
-        <h1 className="text-3xl font-black tracking-widest">Kasseoppgjør (Z)</h1>
+        <h1 className="text-3xl font-black tracking-widest">{t('zreports.title')}</h1>
         
         <Dialog.Root open={isModalOpen} onOpenChange={setIsModalOpen}>
           <Dialog.Trigger asChild>
             <Button size="lg">
-              <FontAwesomeIcon icon={faPlus} className="mr-2" /> Nytt Kasseoppgjør
+              <FontAwesomeIcon icon={faPlus} className="mr-2" /> {t('zreports.new_report')}
             </Button>
           </Dialog.Trigger>
           <Dialog.Portal>
@@ -37,7 +39,7 @@ export function ZReportList() {
                 <div className="flex justify-between items-center mb-6 border-b-4 border-black pb-2">
                   <Dialog.Title className="text-2xl font-black tracking-widest flex items-center gap-3">
                     <FontAwesomeIcon icon={faCashRegister} /> 
-                    Z-Rapport
+                    {t('zreports.z_report')}
                   </Dialog.Title>
                   <Dialog.Close asChild>
                     <Button variant="outline" size="icon">
@@ -52,7 +54,7 @@ export function ZReportList() {
       </div>
 
       {isLoading ? (
-         <div className="text-xl font-bold animate-pulse">Laster oppgjørshistorikk...</div>
+         <div className="text-xl font-bold animate-pulse">{t('zreports.loading')}</div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {reports?.sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()).map((report) => (
@@ -71,7 +73,7 @@ export function ZReportList() {
                   </div>
                   <div className="space-y-4">
                     <div className="flex justify-between items-center text-lg">
-                      <span className="font-bold tracking-wider text-zinc-500">Omsetning</span>
+                      <span className="font-bold tracking-wider text-zinc-500">{t('zreports.gross_sales')}</span>
                       <span className="font-mono font-black text-xl">{report.grossSales.toLocaleString('no-NO')} kr</span>
                     </div>
                     
@@ -84,7 +86,7 @@ export function ZReportList() {
                           : "border-yellow-500 bg-yellow-100 text-yellow-900"
                     )}>
                       <span className="tracking-widest text-xs font-black font-sans">
-                        {report.cashDifference === 0 ? 'I Balanse' : report.cashDifference < 0 ? 'Manko' : 'Overskudd'}
+                        {report.cashDifference === 0 ? t('zreports.balanced') : report.cashDifference < 0 ? t('zreports.shortage') : t('zreports.surplus')}
                       </span>
                       <span>{report.cashDifference > 0 ? '+' : ''}{report.cashDifference.toLocaleString('no-NO')} kr</span>
                     </div>
@@ -96,7 +98,7 @@ export function ZReportList() {
           
           {reports?.length === 0 && (
             <div className="col-span-full p-8 text-center border-4 border-black border-dashed font-black tracking-widest text-xl text-zinc-400">
-              Ingen Z-Rapporter funnet i systemet.
+              {t('zreports.no_reports')}
             </div>
           )}
         </div>

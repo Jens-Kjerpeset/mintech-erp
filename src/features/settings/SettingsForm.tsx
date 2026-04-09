@@ -6,6 +6,7 @@ import { useQuery, useMutation, useQueryClient } from'@tanstack/react-query';
 import { api } from'../../lib/api';
 import { useAppStore } from'../../store/useAppStore';
 import { cn } from'../../lib/utils';
+import { useTranslation } from '../../lib/i18n';
 import { Button } from'../../components/ui/button';
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from'../../components/ui/accordion';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -43,6 +44,7 @@ export function SettingsForm() {
   const queryClient = useQueryClient();
   const theme = useAppStore(state => state.theme);
   const setTheme = useAppStore(state => state.setTheme);
+  const { t } = useTranslation();
 
   const { data: initialSettings, isLoading: isFetching } = useQuery({
     queryKey: ['settings'],
@@ -84,13 +86,13 @@ export function SettingsForm() {
   const hasInvoices = invoices && invoices.length > 0;
 
   if (isFetching) {
-    return <div className="text-xl font-bold animate-pulse p-4 tracking-widest">Laster innstillinger...</div>;
+    return <div className="text-xl font-bold animate-pulse p-4 tracking-widest">{t('settings.loading')}</div>;
   }
 
   return (
     <div className="max-w-3xl mx-auto pb-32">
       <div className="border-b-4 border-black pb-2 mb-6">
-        <h1 className="text-3xl font-black tracking-widest">Systemoppsett</h1>
+        <h1 className="text-3xl font-black tracking-widest">{t('settings.title')}</h1>
       </div>
 
       <form id="settings-form" onSubmit={handleSubmit(onSubmit)}>
@@ -100,12 +102,12 @@ export function SettingsForm() {
           <AccordionItem value="juridisk">
             <AccordionTrigger>
               <div className="flex items-center gap-3">
-                <FontAwesomeIcon icon={faBuilding} className="text-zinc-400" /> Juridisk Informasjon
+                <FontAwesomeIcon icon={faBuilding} className="text-zinc-400" /> {t('settings.legal')}
               </div>
             </AccordionTrigger>
             <AccordionContent className="space-y-4">
               <div className="space-y-2">
-                <label className="font-bold text-sm tracking-wider text-zinc-500">Selskapsnavn *</label>
+                <label className="font-bold text-sm tracking-wider text-zinc-500">{t('settings.legal_name')}</label>
                 <input 
                   {...register('companyName')} 
                   className="w-full border-2 border-black px-4 py-3 font-bold text-lg focus:outline-none focus:ring-2 focus:ring-black bg-zinc-50"
@@ -115,7 +117,7 @@ export function SettingsForm() {
               </div>
 
               <div className="space-y-2">
-                <label className="font-bold text-sm tracking-wider text-zinc-500">Organisasjonsnummer *</label>
+                <label className="font-bold text-sm tracking-wider text-zinc-500">{t('settings.legal_org')}</label>
                 <input 
                   {...register('orgNumber')} 
                   className="w-full border-2 border-black px-4 py-3 font-mono font-bold focus:outline-none focus:ring-2 focus:ring-black bg-zinc-50"
@@ -125,7 +127,7 @@ export function SettingsForm() {
               </div>
 
               <div className="space-y-2">
-                <label className="font-bold text-sm tracking-wider text-zinc-500">Gateadresse *</label>
+                <label className="font-bold text-sm tracking-wider text-zinc-500">{t('settings.legal_address')}</label>
                 <input 
                   {...register('companyAddress')} 
                   className="w-full border-2 border-black px-4 py-3 font-bold focus:outline-none focus:ring-2 focus:ring-black bg-zinc-50"
@@ -136,7 +138,7 @@ export function SettingsForm() {
 
               <div className="flex flex-row gap-4">
                  <div className="space-y-2 w-1/3">
-                    <label className="font-bold text-sm tracking-wider text-zinc-500">Postnummer *</label>
+                    <label className="font-bold text-sm tracking-wider text-zinc-500">{t('settings.legal_zip')}</label>
                     <input 
                       {...register('companyZipCode')} 
                       className="w-full border-2 border-black px-4 py-3 font-mono font-bold focus:outline-none focus:ring-2 focus:ring-black bg-zinc-50"
@@ -145,7 +147,7 @@ export function SettingsForm() {
                     {errors.companyZipCode && <p className="text-red-600 font-bold text-xs">{errors.companyZipCode.message}</p>}
                  </div>
                  <div className="space-y-2 flex-1">
-                    <label className="font-bold text-sm tracking-wider text-zinc-500">Poststed *</label>
+                    <label className="font-bold text-sm tracking-wider text-zinc-500">{t('settings.legal_city')}</label>
                     <input 
                       {...register('companyCity')} 
                       className="w-full border-2 border-black px-4 py-3 font-bold focus:outline-none focus:ring-2 focus:ring-black bg-zinc-50"
@@ -161,12 +163,12 @@ export function SettingsForm() {
           <AccordionItem value="betaling">
             <AccordionTrigger>
               <div className="flex items-center gap-3">
-                <FontAwesomeIcon icon={faCreditCard} className="text-zinc-400" /> Betalingsinformasjon
+                <FontAwesomeIcon icon={faCreditCard} className="text-zinc-400" /> {t('settings.payment')}
               </div>
             </AccordionTrigger>
             <AccordionContent className="space-y-4">
               <div className="space-y-2">
-                <label className="font-bold text-sm tracking-wider text-zinc-500">Bankkontonummer *</label>
+                <label className="font-bold text-sm tracking-wider text-zinc-500">{t('settings.payment_bank')}</label>
                 <input 
                   {...register('bankAccount')} 
                   className="w-full border-2 border-black px-4 py-3 font-mono font-bold focus:outline-none focus:ring-2 focus:ring-black bg-zinc-50 text-xl"
@@ -176,7 +178,7 @@ export function SettingsForm() {
               </div>
 
               <div className="space-y-2">
-                <label className="font-bold text-sm tracking-wider text-zinc-500">Vipps-nummer (Valgfritt)</label>
+                <label className="font-bold text-sm tracking-wider text-zinc-500">{t('settings.payment_vipps')}</label>
                 <input 
                   {...register('vippsNumber')} 
                   className="w-full border-2 border-black px-4 py-3 font-mono font-bold focus:outline-none focus:ring-2 focus:ring-black bg-zinc-50"
@@ -186,14 +188,14 @@ export function SettingsForm() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                  <div className="space-y-2">
-                   <label className="font-bold text-sm tracking-wider text-zinc-500">IBAN (Valgfritt)</label>
+                   <label className="font-bold text-sm tracking-wider text-zinc-500">{t('settings.payment_iban')}</label>
                    <input 
                      {...register('iban')} 
                      className="w-full border-2 border-black px-4 py-3 font-mono font-bold focus:outline-none focus:ring-2 focus:ring-black bg-zinc-50"
                    />
                  </div>
                  <div className="space-y-2">
-                   <label className="font-bold text-sm tracking-wider text-zinc-500">SWIFT/BIC (Valgfritt)</label>
+                   <label className="font-bold text-sm tracking-wider text-zinc-500">{t('settings.payment_swift')}</label>
                    <input 
                      {...register('swift')} 
                      className="w-full border-2 border-black px-4 py-3 font-mono font-bold focus:outline-none focus:ring-2 focus:ring-black bg-zinc-50"
@@ -207,32 +209,32 @@ export function SettingsForm() {
           <AccordionItem value="system">
             <AccordionTrigger>
               <div className="flex items-center gap-3">
-                <FontAwesomeIcon icon={faGear} className="text-zinc-400" /> System & Fakturering
+                <FontAwesomeIcon icon={faGear} className="text-zinc-400" /> {t('settings.system')}
               </div>
             </AccordionTrigger>
             <AccordionContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                  <div className="space-y-2">
-                   <label className="font-bold text-sm tracking-wider text-zinc-500">Neste Fakturanummer</label>
+                   <label className="font-bold text-sm tracking-wider text-zinc-500">{t('settings.system_next_inv')}</label>
                    <input 
                      type="number"
                      disabled={hasInvoices}
                      {...register('nextInvoiceNumber')} 
-                     title={hasInvoices ?"Fakturanummer kan ikke endres etter første faktura er sendt" :""}
+                     title={hasInvoices ? t('settings.system_next_inv_locked') : ""}
                      className="w-full border-2 border-black px-4 py-3 font-mono font-bold focus:outline-none focus:ring-2 focus:ring-black bg-zinc-50 disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-zinc-200"
                    />
-                   {hasInvoices && <p className="text-zinc-500 font-bold text-xs">Låst av systemet (Fakturaer eksisterer)</p>}
+                   {hasInvoices && <p className="text-zinc-500 font-bold text-xs">{t('settings.system_next_inv_locked')}</p>}
                    {errors.nextInvoiceNumber && <p className="text-red-600 font-bold text-xs">{errors.nextInvoiceNumber.message}</p>}
                  </div>
 
                  <div className="space-y-2">
-                   <label className="font-bold text-sm tracking-wider text-zinc-500">MVA Termin</label>
+                   <label className="font-bold text-sm tracking-wider text-zinc-500">{t('settings.system_mva')}</label>
                    <select 
                      {...register('mvaTerm')} 
                      className="w-full border-2 border-black px-4 py-3 font-bold focus:outline-none focus:ring-2 focus:ring-black bg-zinc-50"
                    >
-                     <option value="BiMonthly">Annenhver måned</option>
-                     <option value="Yearly">Årlig</option>
+                     <option value="BiMonthly">{t('settings.system_mva_bimo')}</option>
+                     <option value="Yearly">{t('settings.system_mva_year')}</option>
                    </select>
                    {errors.mvaTerm && <p className="text-red-600 font-bold text-xs">{errors.mvaTerm.message}</p>}
                  </div>
@@ -240,7 +242,7 @@ export function SettingsForm() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="font-bold text-sm tracking-wider text-zinc-500">Standard Kredittid (Dager)</label>
+                  <label className="font-bold text-sm tracking-wider text-zinc-500">{t('settings.system_credit')}</label>
                   <input 
                     type="number"
                     {...register('defaultCreditDays')} 
@@ -250,13 +252,13 @@ export function SettingsForm() {
                 </div>
 
                  <div className="space-y-2">
-                   <label className="font-bold text-sm tracking-wider text-zinc-500">Språk / Language</label>
+                   <label className="font-bold text-sm tracking-wider text-zinc-500">{t('settings.system_lang')}</label>
                    <select 
                      {...register('language')} 
                      className="w-full border-2 border-black px-4 py-3 font-bold focus:outline-none focus:ring-2 focus:ring-black bg-zinc-50"
                    >
-                     <option value="no">Norsk (Norway)</option>
-                     <option value="en">English (US)</option>
+                     <option value="no">{t('settings.system_lang_no')}</option>
+                     <option value="en">{t('settings.system_lang_en')}</option>
                    </select>
                    {errors.language && <p className="text-red-600 font-bold text-xs">{errors.language.message}</p>}
                  </div>
@@ -268,12 +270,12 @@ export function SettingsForm() {
           <AccordionItem value="profilering">
             <AccordionTrigger>
               <div className="flex items-center gap-3">
-                <FontAwesomeIcon icon={faIdCard} className="text-zinc-400" /> Profilering
+                <FontAwesomeIcon icon={faIdCard} className="text-zinc-400" /> {t('settings.profile')}
               </div>
             </AccordionTrigger>
             <AccordionContent className="space-y-4">
               <div className="space-y-2">
-                <label className="font-bold text-sm tracking-wider text-zinc-500">Logo URL</label>
+                <label className="font-bold text-sm tracking-wider text-zinc-500">{t('settings.profile_logo')}</label>
                 <input 
                   {...register('logoUrl')} 
                   className="w-full border-2 border-black px-4 py-3 font-mono font-bold focus:outline-none focus:ring-2 focus:ring-black bg-zinc-50"
@@ -283,12 +285,12 @@ export function SettingsForm() {
               </div>
 
               <div className="space-y-2">
-                <label className="font-bold text-sm tracking-wider text-zinc-500">Standard Fakturatekst</label>
+                <label className="font-bold text-sm tracking-wider text-zinc-500">{t('settings.profile_note')}</label>
                 <textarea 
                   {...register('defaultNote')} 
                   rows={3}
                   className="w-full border-2 border-black px-4 py-3 font-bold focus:outline-none focus:ring-2 focus:ring-black bg-zinc-50 resize-none"
-                  placeholder="Skriv inn en melding som vises på alle fakturaer..."
+                  placeholder={t('settings.profile_note_placeholder')}
                 />
                 {errors.defaultNote && <p className="text-red-600 font-bold text-xs">{errors.defaultNote.message}</p>}
               </div>
@@ -299,7 +301,7 @@ export function SettingsForm() {
           <AccordionItem value="utseende">
             <AccordionTrigger>
               <div className="flex items-center gap-3">
-                <FontAwesomeIcon icon={faPalette} className="text-zinc-400" /> Utseende & Tema
+                <FontAwesomeIcon icon={faPalette} className="text-zinc-400" /> {t('settings.theme')}
               </div>
             </AccordionTrigger>
             <AccordionContent className="space-y-4">
@@ -312,7 +314,7 @@ export function SettingsForm() {
                   )}
                 >
                   <FontAwesomeIcon icon={faSun} className="text-3xl text-black" />
-                  <span className="font-bold text-black tracking-wider text-sm">Lys</span>
+                  <span className="font-bold text-black tracking-wider text-sm">{t('settings.theme_light')}</span>
                 </button>
                 <button
                   type="button"
@@ -322,7 +324,7 @@ export function SettingsForm() {
                   )}
                 >
                   <FontAwesomeIcon icon={faMoon} className="text-3xl text-white" />
-                  <span className="font-bold text-white tracking-wider text-sm">Mørk</span>
+                  <span className="font-bold text-white tracking-wider text-sm">{t('settings.theme_dark')}</span>
                 </button>
               </div>
             </AccordionContent>
@@ -341,9 +343,9 @@ export function SettingsForm() {
             className="w-full sm:w-auto h-14 text-lg min-w-[250px] shadow-[4px_4px_0_0_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none transition-all"
           >
             {updateMutation.isPending ? (
-              <><FontAwesomeIcon icon={faSpinner} className="animate-spin mr-2" /> Lagrer...</>
+              <><FontAwesomeIcon icon={faSpinner} className="animate-spin mr-2" /> {t('settings.saving')}</>
             ) : (
-              <><FontAwesomeIcon icon={faSave} className="mr-2" /> Lagre Innstillinger</>
+              <><FontAwesomeIcon icon={faSave} className="mr-2" /> {t('settings.save')}</>
             )}
           </Button>
         </div>
