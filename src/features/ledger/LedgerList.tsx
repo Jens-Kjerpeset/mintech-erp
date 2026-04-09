@@ -136,19 +136,25 @@ export function LedgerList() {
           <div className="space-y-1">
             <label className="text-xs font-bold tracking-widest">Fra Dato</label>
             <input 
-              type="date"
+              type={dateFrom ? "date" : "text"}
+              onFocus={(e) => e.target.type = 'date'}
+              onBlur={(e) => { if (!e.target.value) e.target.type = 'text'; }}
+              placeholder="dd.mm.åååå"
               value={dateFrom}
               onChange={e => handleFilterChange({ from: e.target.value })}
-              className="w-full border-2 border-black px-3 py-2 font-bold focus:outline-none bg-white font-mono"
+              className="w-full max-w-full border-2 border-black px-3 py-2 font-bold focus:outline-none bg-white font-mono"
             />
           </div>
           <div className="space-y-1">
              <label className="text-xs font-bold tracking-widest">Til Dato</label>
              <input 
-               type="date"
+               type={dateTo ? "date" : "text"}
+               onFocus={(e) => e.target.type = 'date'}
+               onBlur={(e) => { if (!e.target.value) e.target.type = 'text'; }}
+               placeholder="dd.mm.åååå"
                value={dateTo}
                onChange={e => handleFilterChange({ to: e.target.value })}
-               className="w-full border-2 border-black px-3 py-2 font-bold focus:outline-none bg-white font-mono"
+               className="w-full max-w-full border-2 border-black px-3 py-2 font-bold focus:outline-none bg-white font-mono"
              />
           </div>
         </div>
