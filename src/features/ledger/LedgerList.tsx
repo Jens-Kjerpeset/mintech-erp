@@ -218,26 +218,26 @@ export function LedgerList() {
                 
                 {expandedMonths[month] && (
                   <div className="flex flex-col gap-4 pl-3 border-l-4 border-black ml-1.5 transition-all">
-                    {txs.map((t) => (
+                    {txs.map((tx) => (
                       <button
-                        key={t.id}
-                        onClick={() => setSelectedTx(t)}
+                        key={tx.id}
+                        onClick={() => setSelectedTx(tx)}
                         className="w-full text-left active:scale-[0.98] transition-transform duration-100 ease-in-out focus:outline-none block"
                       >
                         <div className="border-2 border-black bg-white p-4 flex justify-between items-center hover:bg-zinc-50 transition-colors">
                           <div className="flex flex-col gap-1 w-full overflow-hidden mr-4">
-                            <span className="font-bold truncate text-[15px]">{t.description || t('ledger.no_description')}</span>
+                            <span className="font-bold truncate text-[15px]">{tx.description || t('ledger.no_description')}</span>
                             <span className="text-sm tracking-widest text-zinc-500 font-bold whitespace-nowrap overflow-hidden text-ellipsis">
-                               {new Date(t.date).toLocaleDateString('no-NO')} • {t.category}
+                               {new Date(tx.date).toLocaleDateString('no-NO')} • {tx.category}
                             </span>
                           </div>
                           <div className="flex flex-col items-end gap-1 shrink-0">
-                            <span className={`font-mono font-black text-lg whitespace-nowrap ${t.type === 'income' ? 'text-green-600' : 'text-black'}`}>
-                              {t.type === 'income' ? '+' : '-'}{t.amount.toLocaleString('no-NO')} kr
+                            <span className={`font-mono font-black text-lg whitespace-nowrap ${tx.type === 'income' ? 'text-green-600' : 'text-black'}`}>
+                              {tx.type === 'income' ? '+' : '-'}{tx.amount.toLocaleString('no-NO')} kr
                             </span>
-                            {t.vatAmount > 0 && (
+                            {tx.vatAmount > 0 && (
                               <span className="text-[10px] text-zinc-500 font-bold font-mono">
-                                {t('ledger.inc_vat')} {t.vatAmount.toLocaleString('no-NO')}
+                                {t('ledger.inc_vat')} {tx.vatAmount.toLocaleString('no-NO')}
                               </span>
                             )}
                           </div>
