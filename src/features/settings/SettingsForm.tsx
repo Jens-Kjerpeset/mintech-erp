@@ -34,6 +34,7 @@ const settingsSchema = z.object({
   psd2Connected: z.boolean().default(false),
   izettleConnected: z.boolean().default(false),
   altinnConnected: z.boolean().default(false),
+  language: z.enum(['no', 'en']).default('no'),
 });
 
 type SettingsFormValues = z.infer<typeof settingsSchema>;
@@ -237,14 +238,28 @@ export function SettingsForm() {
                  </div>
               </div>
 
-              <div className="space-y-2">
-                <label className="font-bold text-sm tracking-wider text-zinc-500">Standard Kredittid (Dager)</label>
-                <input 
-                  type="number"
-                  {...register('defaultCreditDays')} 
-                  className="w-full border-2 border-black px-4 py-3 font-mono font-bold focus:outline-none focus:ring-2 focus:ring-black bg-zinc-50 max-w-[150px]"
-                />
-                {errors.defaultCreditDays && <p className="text-red-600 font-bold text-xs">{errors.defaultCreditDays.message}</p>}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="font-bold text-sm tracking-wider text-zinc-500">Standard Kredittid (Dager)</label>
+                  <input 
+                    type="number"
+                    {...register('defaultCreditDays')} 
+                    className="w-full border-2 border-black px-4 py-3 font-mono font-bold focus:outline-none focus:ring-2 focus:ring-black bg-zinc-50 max-w-[150px]"
+                  />
+                  {errors.defaultCreditDays && <p className="text-red-600 font-bold text-xs">{errors.defaultCreditDays.message}</p>}
+                </div>
+
+                 <div className="space-y-2">
+                   <label className="font-bold text-sm tracking-wider text-zinc-500">Språk / Language</label>
+                   <select 
+                     {...register('language')} 
+                     className="w-full border-2 border-black px-4 py-3 font-bold focus:outline-none focus:ring-2 focus:ring-black bg-zinc-50"
+                   >
+                     <option value="no">Norsk (Norway)</option>
+                     <option value="en">English (US)</option>
+                   </select>
+                   {errors.language && <p className="text-red-600 font-bold text-xs">{errors.language.message}</p>}
+                 </div>
               </div>
             </AccordionContent>
           </AccordionItem>

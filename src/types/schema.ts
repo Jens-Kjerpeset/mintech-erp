@@ -105,4 +105,5 @@ export interface Settings {
   psd2Connected: boolean;
   izettleConnected: boolean;
   altinnConnected: boolean;
+  language: string;
 }
