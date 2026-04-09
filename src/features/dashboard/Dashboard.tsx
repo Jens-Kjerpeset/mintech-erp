@@ -88,8 +88,9 @@ export function Dashboard() {
                      tickFormatter={(val) => val >= 1000 ? (val / 1000).toFixed(0) + 'k' : val}
                    />
                    <Tooltip 
-                     contentStyle={{ border: '2px solid black', borderRadius: 0, fontWeight: 'bold', textTransform: '' }} 
+                     contentStyle={{ border: '2px solid black', borderRadius: 0, fontWeight: 'bold' }} 
                      cursor={{ fill: '#f4f4f5' }}
+                     formatter={(value: number) => [`${value.toLocaleString('no-NO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} kr`, undefined]}
                    />
                    <Legend verticalAlign="top" height={36} wrapperStyle={{ fontWeight: 'bold', fontSize: '14px' }} />
                    <Bar dataKey="inntekt" name="Inntekter" fill="#000000" radius={[0, 0, 0, 0]} />
