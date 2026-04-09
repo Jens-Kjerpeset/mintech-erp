@@ -21,7 +21,8 @@ export const api = {
  
  if (period === 'month') {
  key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
- displayName = date.toLocaleString('no-NO', { month: 'short' });
+ const m = date.toLocaleString('no-NO', { month: 'long' });
+					displayName = m.charAt(0).toUpperCase() + m.slice(1);
  } else {
  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
  const dayNum = d.getUTCDay() || 7;
