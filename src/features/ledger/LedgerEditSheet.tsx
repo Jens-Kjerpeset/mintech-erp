@@ -86,7 +86,7 @@ export function LedgerEditSheet({ transaction, onClose }: { transaction: Transac
         </div>
         
         {transaction && (
-          <div className="flex-1 px-6 flex flex-col h-full overflow-y-auto">
+          <div className="flex-1 px-6 pb-8 flex flex-col h-full overflow-y-auto">
             <div className="flex justify-between items-center mb-6 border-b-4 border-black pb-2">
               <h2 className="text-2xl font-black tracking-widest">Endre Postering</h2>
               <Button type="button" variant="outline" size="icon" onClick={onClose}>
