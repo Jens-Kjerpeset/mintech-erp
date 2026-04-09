@@ -64,7 +64,6 @@ export function InvoiceList() {
         </Button>
       </div>
 
-      <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-6">
         {Object.entries(groupedData).map(([month, invs]) => (
           <div key={month} className="flex flex-col gap-3">
