@@ -43,7 +43,7 @@ export function ZReportDetailSheet({ report, onClose }: { report: ZReport | null
       {/* Slide-Up Sheet */}
       <div
         {...bind()}
-        className={cn("fixed inset-x-0 bottom-0 z-50 flex flex-col bg-white border-t-4 border-black rounded-t-2xl shadow-[0_-4px_0_0_rgba(0,0,0,0.1)] touch-none transition-transform duration-300 h-fit max-h-[90vh]",
+        className={cn("fixed inset-x-0 bottom-0 z-50 flex flex-col bg-white border-t-4 border-black rounded-t-2xl shadow-[0_-4px_0_0_rgba(0,0,0,0.1)] touch-none transition-transform duration-300 h-[85vh]",
           isOpen ?"translate-y-0" :"translate-y-full"
         )}
       >
