@@ -47,7 +47,7 @@ export function InventoryList() {
           </Dialog.Trigger>
           <Dialog.Portal>
             <Dialog.Overlay className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm" />
-            <Dialog.Content className="fixed left-[50%] top-[50%] z-50 w-full max-w-lg translate-x-[-50%] translate-y-[-50%] bg-white border-4 border-black p-6 shadow-[8px_8px_0_0_rgba(0,0,0,1)] max-h-[90vh] overflow-y-auto outline-none">
+            <Dialog.Content className="fixed left-[50%] top-[50%] z-50 w-full max-w-lg translate-x-[-50%] translate-y-[-50%] bg-[var(--card-bg)] border-4 border-[var(--border-brutal)] p-6 shadow-[8px_8px_0_0_rgba(0,0,0,1)] dark:shadow-[8px_8px_0_0_rgba(24,24,27,1)] max-h-[90vh] overflow-y-auto outline-none">
                 <div className="flex justify-between items-center mb-6 border-b-2 border-black pb-2">
                   <Dialog.Title className="text-2xl font-black tracking-widest">{t('inventory.new_item')}</Dialog.Title>
                   <Dialog.Close asChild>
@@ -73,7 +73,7 @@ export function InventoryList() {
                onClick={() => setSelectedProduct(product)}
                className="w-full text-left active:scale-[0.98] transition-transform duration-100 ease-in-out focus:outline-none block"
             >
-              <Card className={cn("hover:bg-zinc-50 border-2 border-black transition-colors w-full h-full",
+              <Card className={cn("hover:bg-[var(--muted-bg)] border-2 border-[var(--border-brutal)] transition-colors w-full h-full",
                 isLowStock &&"border-red-600 bg-red-50/30"
               )}>
                 <CardContent className="p-5 flex flex-col justify-between h-full gap-4">
@@ -91,7 +91,7 @@ export function InventoryList() {
                         <div>
                           <div className="text-xs font-bold tracking-widest text-zinc-500 mb-1">{t('inventory.stock')}</div>
                           <div className={cn("text-3xl font-black font-mono leading-none",
-                            isLowStock ?"text-red-600" :"text-black"
+                            isLowStock ?"text-red-600" :"text-[var(--text-base)]"
                           )}>
                             {product.stockQuantity} <span className="text-sm font-sans tracking-tight text-zinc-500 font-bold">{product.unit || t('inventory.unit_default')}</span>
                           </div>
@@ -111,7 +111,7 @@ export function InventoryList() {
         })}
         
         {products?.length === 0 && (
-          <div className="col-span-full p-8 text-center border-4 border-black border-dashed font-black text-xl text-zinc-400 tracking-widest">
+          <div className="col-span-full p-8 text-center border-4 border-[var(--border-brutal)] border-dashed font-black text-xl text-zinc-400 tracking-widest">
             {t('inventory.no_items')}
           </div>
         )}

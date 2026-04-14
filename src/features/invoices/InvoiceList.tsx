@@ -22,10 +22,6 @@ export function InvoiceList() {
     queryFn: () => api.invoices.list()
   });
 
-  if (isLoading) {
-    return <div className="text-xl font-bold animate-pulse">{t('invoices.loading')}</div>;
-  }
-
   const groupedData = useMemo(() => {
     const groups: Record<string, Invoice[]> = {};
     if (!invoices) return groups;
@@ -44,6 +40,10 @@ export function InvoiceList() {
   });
   
   const toggleMonth = (month: string) => setExpandedMonths(prev => ({ ...prev, [month]: !prev[month] }));
+
+  if (isLoading) {
+    return <div className="text-xl font-bold animate-pulse">{t('invoices.loading')}</div>;
+  }
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -74,27 +74,27 @@ export function InvoiceList() {
           <div key={month} className="flex flex-col gap-3">
             <button
               onClick={() => toggleMonth(month)}
-              className="bg-black text-white px-4 py-3 font-black text-xl tracking-widest text-left flex justify-between items-center active:scale-95 transition-transform border-4 border-black group"
+              className="bg-[var(--text-base)] text-[var(--bg-base)] px-4 py-3 font-black text-xl tracking-widest text-left flex justify-between items-center active:scale-95 transition-transform border-4 border-[var(--border-brutal)] group"
             >
               <span>{month}</span>
               <FontAwesomeIcon icon={expandedMonths[month] ? faChevronDown : faChevronRight} className="group-active:scale-90" />
             </button>
             
             {expandedMonths[month] && (
-              <div className="flex flex-col gap-4 pl-3 border-l-4 border-black ml-1.5 transition-all">
+              <div className="flex flex-col gap-4 pl-3 border-l-4 border-[var(--border-brutal)] ml-1.5 transition-all">
                 {invs.map((invoice) => (
                   <button 
                      key={invoice.id} 
                      onClick={() => setSelectedInvoice(invoice)}
                      className="w-full text-left active:scale-[0.98] transition-transform duration-100 ease-in-out focus:outline-none block"
                   >
-                    <Card className="hover:bg-zinc-50 border-2 border-black transition-colors w-full">
+                    <Card className="hover:bg-[var(--muted-bg)] border-2 border-[var(--border-brutal)] transition-colors w-full">
                       <CardContent className="p-5 flex flex-col gap-3">
                         <div className="flex items-center gap-3">
                           <div className="shrink-0 leading-none">
                             {getStatusIcon(invoice.status)}
                           </div>
-                          <h3 className="font-bold text-xl leading-none truncate w-full text-zinc-900 border-b border-transparent">
+                          <h3 className="font-bold text-xl leading-none truncate w-full text-[var(--text-base)] border-b border-transparent">
                             {invoice.clientName}
                           </h3>
                         </div>
@@ -103,7 +103,7 @@ export function InvoiceList() {
                           <span>{t('invoices.due')} {new Date(invoice.dueDate).toLocaleDateString('no-NO')}</span>
                         </div>
                         <div className="flex justify-end pt-3 border-t-2 border-black/5 mt-1">
-                          <div className="text-3xl font-black font-mono tracking-tight text-black">
+                          <div className="text-3xl font-black font-mono tracking-tight text-[var(--text-base)]">
                             {invoice.total.toLocaleString('no-NO')} kr
                           </div>
                         </div>
@@ -116,7 +116,7 @@ export function InvoiceList() {
           </div>
         ))}
         {invoices?.length === 0 && (
-          <div className="p-8 text-center border-4 border-black border-dashed font-black tracking-widest text-xl text-zinc-400">
+          <div className="p-8 text-center border-4 border-[var(--border-brutal)] border-dashed font-black tracking-widest text-xl text-zinc-400">
             {t('invoices.no_invoices')}
           </div>
         )}

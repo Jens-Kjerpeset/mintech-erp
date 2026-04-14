@@ -24,7 +24,7 @@ export function ZReportList() {
 
   return (
     <div className="space-y-6 pb-24">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b-4 border-black pb-4 gap-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b-4 border-[var(--border-brutal)] pb-4 gap-4">
         <h1 className="text-3xl font-black tracking-widest">{t('zreports.title')}</h1>
         
         <Dialog.Root open={isModalOpen} onOpenChange={setIsModalOpen}>
@@ -35,8 +35,8 @@ export function ZReportList() {
           </Dialog.Trigger>
           <Dialog.Portal>
             <Dialog.Overlay className="fixed inset-0 z-40 bg-black/60 backdrop-blur-[2px]" />
-            <Dialog.Content className="fixed left-[50%] top-[50%] z-50 w-full max-w-2xl translate-x-[-50%] translate-y-[-50%] bg-white border-4 border-black p-6 shadow-[12px_12px_0_0_rgba(0,0,0,1)] max-h-[95vh] overflow-y-auto outline-none">
-                <div className="flex justify-between items-center mb-6 border-b-4 border-black pb-2">
+            <Dialog.Content className="fixed left-[50%] top-[50%] z-50 w-full max-w-2xl translate-x-[-50%] translate-y-[-50%] bg-[var(--card-bg)] border-4 border-[var(--border-brutal)] p-6 shadow-[12px_12px_0_0_rgba(0,0,0,1)] dark:shadow-[12px_12px_0_0_rgba(24,24,27,1)] max-h-[95vh] overflow-y-auto outline-none">
+                <div className="flex justify-between items-center mb-6 border-b-4 border-[var(--border-brutal)] pb-2">
                   <Dialog.Title className="text-2xl font-black tracking-widest flex items-center gap-3">
                     <FontAwesomeIcon icon={faCashRegister} /> 
                     {t('zreports.z_report')}
@@ -63,13 +63,13 @@ export function ZReportList() {
                onClick={() => setSelectedReport(report)}
                className="w-full text-left active:scale-[0.98] transition-transform duration-100 ease-in-out focus:outline-none block"
             >
-              <Card className="hover:bg-zinc-50 transition-colors border-2 border-black w-full h-full">
+              <Card className="hover:bg-[var(--muted-bg)] transition-colors border-2 border-[var(--border-brutal)] w-full h-full">
                 <CardContent className="p-6">
-                  <div className="flex justify-between items-center mb-4 border-b-2 border-black pb-4">
+                  <div className="flex justify-between items-center mb-4 border-b-2 border-[var(--border-brutal)] pb-4">
                     <div className="flex items-center gap-3 font-black text-xl">
                        {new Date(report.date).toLocaleDateString('no-NO')}
                     </div>
-                    <span className="font-bold text-[10px] bg-black text-white px-2 py-1 tracking-widest truncate max-w-[80px]">ID: {report.id.split('-')[0]}</span>
+                    <span className="font-bold text-[10px] bg-[var(--text-base)] text-[var(--bg-base)] px-2 py-1 tracking-widest truncate max-w-[80px]">ID: {report.id.split('-')[0]}</span>
                   </div>
                   <div className="space-y-4">
                     <div className="flex justify-between items-center text-lg">
@@ -78,12 +78,12 @@ export function ZReportList() {
                     </div>
                     
                     <div className={cn(
-                      "flex justify-between items-center p-3 border-2 font-mono font-bold",
+                      "flex justify-between items-center p-3 border-2 font-mono font-bold transition-colors",
                       report.cashDifference === 0 
-                        ? "border-green-600 bg-green-50 text-green-800" 
+                        ? "border-green-600 bg-green-50 text-green-800 dark:bg-green-950 dark:border-green-800 dark:text-green-400" 
                         : report.cashDifference < 0 
-                          ? "border-red-600 bg-red-100 text-red-800" 
-                          : "border-yellow-500 bg-yellow-100 text-yellow-900"
+                          ? "border-red-600 bg-red-50 text-red-800 dark:bg-red-950 dark:border-red-800 dark:text-red-400" 
+                          : "border-yellow-500 bg-yellow-50 text-yellow-900 dark:bg-yellow-950 dark:border-yellow-800 dark:text-yellow-400"
                     )}>
                       <span className="tracking-widest text-xs font-black font-sans">
                         {report.cashDifference === 0 ? t('zreports.balanced') : report.cashDifference < 0 ? t('zreports.shortage') : t('zreports.surplus')}
@@ -97,7 +97,7 @@ export function ZReportList() {
           ))}
           
           {reports?.length === 0 && (
-            <div className="col-span-full p-8 text-center border-4 border-black border-dashed font-black tracking-widest text-xl text-zinc-400">
+            <div className="col-span-full p-8 text-center border-4 border-[var(--border-brutal)] border-dashed font-black tracking-widest text-xl text-zinc-400">
               {t('zreports.no_reports')}
             </div>
           )}

@@ -91,7 +91,7 @@ export function SettingsForm() {
 
   return (
     <div className="max-w-3xl mx-auto pb-32">
-      <div className="border-b-4 border-black pb-2 mb-6">
+      <div className="border-b-4 border-[var(--border-brutal)] pb-2 mb-6">
         <h1 className="text-3xl font-black tracking-widest">{t('settings.title')}</h1>
       </div>
 
@@ -110,7 +110,7 @@ export function SettingsForm() {
                 <label className="font-bold text-sm tracking-wider text-zinc-500">{t('settings.legal_name')}</label>
                 <input 
                   {...register('companyName')} 
-                  className="w-full border-2 border-black px-4 py-3 font-bold text-lg focus:outline-none focus:ring-2 focus:ring-black bg-zinc-50"
+                  className="w-full border-2 border-[var(--border-brutal)] px-4 py-3 font-bold text-lg focus:outline-none focus:ring-2 focus:ring-[var(--border-brutal)] bg-[var(--card-bg)] text-[var(--text-base)]"
                   placeholder="Mintech AS"
                 />
                 {errors.companyName && <p className="text-red-600 font-bold text-xs">{errors.companyName.message}</p>}
@@ -120,7 +120,7 @@ export function SettingsForm() {
                 <label className="font-bold text-sm tracking-wider text-zinc-500">{t('settings.legal_org')}</label>
                 <input 
                   {...register('orgNumber')} 
-                  className="w-full border-2 border-black px-4 py-3 font-mono font-bold focus:outline-none focus:ring-2 focus:ring-black bg-zinc-50"
+                  className="w-full border-2 border-[var(--border-brutal)] px-4 py-3 font-mono font-bold focus:outline-none focus:ring-2 focus:ring-[var(--border-brutal)] bg-[var(--card-bg)] text-[var(--text-base)]"
                   placeholder="123 456 789 MVA"
                 />
                 {errors.orgNumber && <p className="text-red-600 font-bold text-xs">{errors.orgNumber.message}</p>}
@@ -130,7 +130,7 @@ export function SettingsForm() {
                 <label className="font-bold text-sm tracking-wider text-zinc-500">{t('settings.legal_address')}</label>
                 <input 
                   {...register('companyAddress')} 
-                  className="w-full border-2 border-black px-4 py-3 font-bold focus:outline-none focus:ring-2 focus:ring-black bg-zinc-50"
+                  className="w-full border-2 border-[var(--border-brutal)] px-4 py-3 font-bold focus:outline-none focus:ring-2 focus:ring-[var(--border-brutal)] bg-[var(--card-bg)] text-[var(--text-base)]"
                   placeholder="Storgata 1"
                 />
                 {errors.companyAddress && <p className="text-red-600 font-bold text-xs">{errors.companyAddress.message}</p>}
@@ -141,7 +141,7 @@ export function SettingsForm() {
                     <label className="font-bold text-sm tracking-wider text-zinc-500">{t('settings.legal_zip')}</label>
                     <input 
                       {...register('companyZipCode')} 
-                      className="w-full border-2 border-black px-4 py-3 font-mono font-bold focus:outline-none focus:ring-2 focus:ring-black bg-zinc-50"
+                      className="w-full border-2 border-[var(--border-brutal)] px-4 py-3 font-mono font-bold focus:outline-none focus:ring-2 focus:ring-[var(--border-brutal)] bg-[var(--card-bg)] text-[var(--text-base)]"
                       placeholder="0000"
                     />
                     {errors.companyZipCode && <p className="text-red-600 font-bold text-xs">{errors.companyZipCode.message}</p>}
@@ -150,7 +150,7 @@ export function SettingsForm() {
                     <label className="font-bold text-sm tracking-wider text-zinc-500">{t('settings.legal_city')}</label>
                     <input 
                       {...register('companyCity')} 
-                      className="w-full border-2 border-black px-4 py-3 font-bold focus:outline-none focus:ring-2 focus:ring-black bg-zinc-50"
+                      className="w-full border-2 border-[var(--border-brutal)] px-4 py-3 font-bold focus:outline-none focus:ring-2 focus:ring-[var(--border-brutal)] bg-[var(--card-bg)] text-[var(--text-base)]"
                       placeholder="Oslo"
                     />
                     {errors.companyCity && <p className="text-red-600 font-bold text-xs">{errors.companyCity.message}</p>}
@@ -171,7 +171,7 @@ export function SettingsForm() {
                 <label className="font-bold text-sm tracking-wider text-zinc-500">{t('settings.payment_bank')}</label>
                 <input 
                   {...register('bankAccount')} 
-                  className="w-full border-2 border-black px-4 py-3 font-mono font-bold focus:outline-none focus:ring-2 focus:ring-black bg-zinc-50 text-xl"
+                  className="w-full border-2 border-[var(--border-brutal)] px-4 py-3 font-mono font-bold focus:outline-none focus:ring-2 focus:ring-[var(--border-brutal)] bg-[var(--card-bg)] text-[var(--text-base)] text-xl"
                   placeholder="0000.00.00000"
                 />
                 {errors.bankAccount && <p className="text-red-600 font-bold text-xs">{errors.bankAccount.message}</p>}
@@ -181,7 +181,7 @@ export function SettingsForm() {
                 <label className="font-bold text-sm tracking-wider text-zinc-500">{t('settings.payment_vipps')}</label>
                 <input 
                   {...register('vippsNumber')} 
-                  className="w-full border-2 border-black px-4 py-3 font-mono font-bold focus:outline-none focus:ring-2 focus:ring-black bg-zinc-50"
+                  className="w-full border-2 border-[var(--border-brutal)] px-4 py-3 font-mono font-bold focus:outline-none focus:ring-2 focus:ring-[var(--border-brutal)] bg-[var(--card-bg)] text-[var(--text-base)]"
                   placeholder="12345"
                 />
               </div>
@@ -191,14 +191,14 @@ export function SettingsForm() {
                    <label className="font-bold text-sm tracking-wider text-zinc-500">{t('settings.payment_iban')}</label>
                    <input 
                      {...register('iban')} 
-                     className="w-full border-2 border-black px-4 py-3 font-mono font-bold focus:outline-none focus:ring-2 focus:ring-black bg-zinc-50"
+                     className="w-full border-2 border-[var(--border-brutal)] px-4 py-3 font-mono font-bold focus:outline-none focus:ring-2 focus:ring-[var(--border-brutal)] bg-[var(--card-bg)] text-[var(--text-base)]"
                    />
                  </div>
                  <div className="space-y-2">
                    <label className="font-bold text-sm tracking-wider text-zinc-500">{t('settings.payment_swift')}</label>
                    <input 
                      {...register('swift')} 
-                     className="w-full border-2 border-black px-4 py-3 font-mono font-bold focus:outline-none focus:ring-2 focus:ring-black bg-zinc-50"
+                     className="w-full border-2 border-[var(--border-brutal)] px-4 py-3 font-mono font-bold focus:outline-none focus:ring-2 focus:ring-[var(--border-brutal)] bg-[var(--card-bg)] text-[var(--text-base)]"
                    />
                  </div>
               </div>
@@ -221,7 +221,7 @@ export function SettingsForm() {
                      disabled={hasInvoices}
                      {...register('nextInvoiceNumber')} 
                      title={hasInvoices ? t('settings.system_next_inv_locked') : ""}
-                     className="w-full border-2 border-black px-4 py-3 font-mono font-bold focus:outline-none focus:ring-2 focus:ring-black bg-zinc-50 disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-zinc-200"
+                     className="w-full border-2 border-[var(--border-brutal)] px-4 py-3 font-mono font-bold focus:outline-none focus:ring-2 focus:ring-[var(--border-brutal)] bg-[var(--card-bg)] text-[var(--text-base)] disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-[var(--muted-bg)]"
                    />
                    {hasInvoices && <p className="text-zinc-500 font-bold text-xs">{t('settings.system_next_inv_locked')}</p>}
                    {errors.nextInvoiceNumber && <p className="text-red-600 font-bold text-xs">{errors.nextInvoiceNumber.message}</p>}
@@ -231,7 +231,7 @@ export function SettingsForm() {
                    <label className="font-bold text-sm tracking-wider text-zinc-500">{t('settings.system_mva')}</label>
                    <select 
                      {...register('mvaTerm')} 
-                     className="w-full border-2 border-black px-4 py-3 font-bold focus:outline-none focus:ring-2 focus:ring-black bg-zinc-50"
+                     className="w-full border-2 border-[var(--border-brutal)] px-4 py-3 font-bold focus:outline-none focus:ring-2 focus:ring-[var(--border-brutal)] bg-[var(--card-bg)] text-[var(--text-base)]"
                    >
                      <option value="BiMonthly">{t('settings.system_mva_bimo')}</option>
                      <option value="Yearly">{t('settings.system_mva_year')}</option>
@@ -246,7 +246,7 @@ export function SettingsForm() {
                   <input 
                     type="number"
                     {...register('defaultCreditDays')} 
-                    className="w-full border-2 border-black px-4 py-3 font-mono font-bold focus:outline-none focus:ring-2 focus:ring-black bg-zinc-50 max-w-[150px]"
+                    className="w-full border-2 border-[var(--border-brutal)] px-4 py-3 font-mono font-bold focus:outline-none focus:ring-2 focus:ring-[var(--border-brutal)] bg-[var(--card-bg)] text-[var(--text-base)] max-w-[150px]"
                   />
                   {errors.defaultCreditDays && <p className="text-red-600 font-bold text-xs">{errors.defaultCreditDays.message}</p>}
                 </div>
@@ -255,7 +255,7 @@ export function SettingsForm() {
                    <label className="font-bold text-sm tracking-wider text-zinc-500">{t('settings.system_lang')}</label>
                    <select 
                      {...register('language')} 
-                     className="w-full border-2 border-black px-4 py-3 font-bold focus:outline-none focus:ring-2 focus:ring-black bg-zinc-50"
+                     className="w-full border-2 border-[var(--border-brutal)] px-4 py-3 font-bold focus:outline-none focus:ring-2 focus:ring-[var(--border-brutal)] bg-[var(--card-bg)] text-[var(--text-base)]"
                    >
                      <option value="no">{t('settings.system_lang_no')}</option>
                      <option value="en">{t('settings.system_lang_en')}</option>
@@ -278,7 +278,7 @@ export function SettingsForm() {
                 <label className="font-bold text-sm tracking-wider text-zinc-500">{t('settings.profile_logo')}</label>
                 <input 
                   {...register('logoUrl')} 
-                  className="w-full border-2 border-black px-4 py-3 font-mono font-bold focus:outline-none focus:ring-2 focus:ring-black bg-zinc-50"
+                  className="w-full border-2 border-[var(--border-brutal)] px-4 py-3 font-mono font-bold focus:outline-none focus:ring-2 focus:ring-[var(--border-brutal)] bg-[var(--card-bg)] text-[var(--text-base)]"
                   placeholder="https://example.com/logo.png"
                 />
                 {errors.logoUrl && <p className="text-red-600 font-bold text-xs">{errors.logoUrl.message}</p>}
@@ -289,7 +289,7 @@ export function SettingsForm() {
                 <textarea 
                   {...register('defaultNote')} 
                   rows={3}
-                  className="w-full border-2 border-black px-4 py-3 font-bold focus:outline-none focus:ring-2 focus:ring-black bg-zinc-50 resize-none"
+                  className="w-full border-2 border-[var(--border-brutal)] px-4 py-3 font-bold focus:outline-none focus:ring-2 focus:ring-[var(--border-brutal)] bg-[var(--card-bg)] text-[var(--text-base)] resize-none"
                   placeholder={t('settings.profile_note_placeholder')}
                 />
                 {errors.defaultNote && <p className="text-red-600 font-bold text-xs">{errors.defaultNote.message}</p>}
@@ -334,7 +334,7 @@ export function SettingsForm() {
       </form>
 
       {/* Sticky footer for saving (Outside Accordion Tree, mapped to form ID) */}
-      <div className="fixed bottom-0 inset-x-0 z-40 bg-zinc-100 border-t-4 border-black p-4 flex justify-end shadow-[0_-4px_0_0_rgba(0,0,0,0.1)]">
+      <div className="fixed bottom-0 inset-x-0 z-40 bg-[var(--muted-bg)] border-t-4 border-[var(--border-brutal)] p-4 flex justify-end shadow-[0_-4px_0_0_rgba(0,0,0,0.1)] dark:shadow-[0_-4px_0_0_rgba(24,24,27,0.5)]">
         <div className="max-w-3xl mx-auto w-full flex justify-end">
           <Button 
             type="submit" 

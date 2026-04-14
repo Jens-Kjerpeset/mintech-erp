@@ -30,7 +30,7 @@ export function Dashboard() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4">
-        <h1 className="text-3xl font-black tracking-widest border-b-4 border-black pb-2 inline-block self-start">
+        <h1 className="text-3xl font-black tracking-widest border-b-4 border-[var(--border-brutal)] pb-2 inline-block self-start">
           {t('dashboard.title')}
         </h1>
         
@@ -90,12 +90,12 @@ export function Dashboard() {
                      tickFormatter={(val) => val >= 1000 ? (val / 1000).toFixed(0) + 'k' : val}
                    />
                    <Tooltip 
-                     contentStyle={{ border: '2px solid black', borderRadius: 0, fontWeight: 'bold' }} 
-                     cursor={{ fill: '#f4f4f5' }}
+                     contentStyle={{ border: '2px solid var(--border-brutal)', backgroundColor: 'var(--card-bg)', color: 'var(--text-base)', borderRadius: 0, fontWeight: 'bold' }} 
+                     cursor={{ fill: 'var(--muted-bg)' }}
                      formatter={(value: number) => [`${value.toLocaleString('no-NO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} kr`, undefined]}
                    />
                    <Legend verticalAlign="top" height={36} wrapperStyle={{ fontWeight: 'bold', fontSize: '14px' }} />
-                   <Bar dataKey="inntekt" name={t('dashboard.income')} fill="#000000" radius={[0, 0, 0, 0]} />
+                   <Bar dataKey="inntekt" name={t('dashboard.income')} fill="var(--text-base)" radius={[0, 0, 0, 0]} />
                    <Bar dataKey="utgift" name={t('dashboard.expenses')} fill="#dc2626" radius={[0, 0, 0, 0]} />
                  </BarChart>
                </ResponsiveContainer>

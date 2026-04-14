@@ -1,6 +1,5 @@
 import { db } from './db';
 import type { Transaction, Invoice, InvoiceItem, Contact, Product, ZReport, Settings } from '../types/schema';
-import { faker } from '@faker-js/faker';
 
 const DELAY_MS = 600;
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -220,17 +219,22 @@ export const api = {
  },
  seedDataIfNeeded: async () => {
  const demoVersion = localStorage.getItem('demo_data_v8');
- if (!demoVersion) {
- await db.settings.clear();
- await db.transactions.clear();
- await db.invoices.clear();
- await db.contacts.clear();
- await db.products.clear();
- await db.zreports.clear();
- localStorage.setItem('demo_data_v8', 'true');
- } else {
  const txCount = await db.transactions.count();
- if (txCount > 0) return;
+  
+ if (demoVersion && txCount > 0) {
+  return;
+ }
+
+ const { faker } = await import('@faker-js/faker');
+
+ if (!demoVersion) {
+  await db.settings.clear();
+  await db.transactions.clear();
+  await db.invoices.clear();
+  await db.contacts.clear();
+  await db.products.clear();
+  await db.zreports.clear();
+  localStorage.setItem('demo_data_v8', 'true');
  }
 
  // --- 1. Contacts (Hovedbok) ---

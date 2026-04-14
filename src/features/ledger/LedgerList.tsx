@@ -129,17 +129,17 @@ export function LedgerList() {
 
   return (
     <div className="space-y-6 pb-20">
-      <div className="flex flex-col border-b-4 border-black pb-4 gap-4">
+      <div className="flex flex-col border-b-4 border-[var(--border-brutal)] pb-4 gap-4">
         <h1 className="text-3xl font-black tracking-widest">{t('ledger.title')}</h1>
         
         {/* Filters Panel */}
-        <div className="bg-zinc-100 p-4 border-2 border-black grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="bg-[var(--muted-bg)] p-4 border-2 border-[var(--border-brutal)] grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
           <div className="space-y-1">
             <label className="text-xs font-bold tracking-widest">{t('ledger.filter_type')}</label>
             <select 
               value={typeFilter} 
               onChange={e => handleFilterChange({ type: e.target.value })}
-              className="w-full border-2 border-black px-3 py-2 font-bold focus:outline-none bg-white"
+              className="w-full border-2 border-[var(--border-brutal)] px-3 py-2 font-bold focus:outline-none bg-[var(--card-bg)] text-[var(--text-base)]"
             >
               <option value="all">{t('ledger.filter_all')}</option>
               <option value="income">{t('ledger.filter_income')}</option>
@@ -151,7 +151,7 @@ export function LedgerList() {
             <select 
               value={categoryFilter} 
               onChange={e => handleFilterChange({ category: e.target.value })}
-              className="w-full border-2 border-black px-3 py-2 font-bold focus:outline-none bg-white max-w-full truncate"
+              className="w-full border-2 border-[var(--border-brutal)] px-3 py-2 font-bold focus:outline-none bg-[var(--card-bg)] text-[var(--text-base)] max-w-full truncate"
             >
               <option value="all">{t('ledger.filter_category_all')}</option>
               {uniqueCategories.map(c => <option key={c} value={c}>{c}</option>)}
@@ -163,7 +163,7 @@ export function LedgerList() {
               type="date"
               value={dateFrom}
               onChange={e => handleFilterChange({ from: e.target.value })}
-              className="w-full min-w-0 appearance-none border-2 border-black px-3 py-2 font-bold focus:outline-none bg-white"
+              className="w-full min-w-0 appearance-none border-2 border-[var(--border-brutal)] px-3 py-2 font-bold focus:outline-none bg-[var(--card-bg)] text-[var(--text-base)]"
             />
           </div>
           <div className="space-y-1 min-w-0">
@@ -172,7 +172,7 @@ export function LedgerList() {
                type="date"
                value={dateTo}
                onChange={e => handleFilterChange({ to: e.target.value })}
-               className="w-full min-w-0 appearance-none border-2 border-black px-3 py-2 font-bold focus:outline-none bg-white"
+               className="w-full min-w-0 appearance-none border-2 border-[var(--border-brutal)] px-3 py-2 font-bold focus:outline-none bg-[var(--card-bg)] text-[var(--text-base)]"
              />
           </div>
         </div>
@@ -183,12 +183,12 @@ export function LedgerList() {
       ) : (
         <div className="relative">
           {/* Transition overlay */}
-          {isPending && <div className="absolute inset-0 bg-white/70 backdrop-blur-[1px] z-10 flex items-center justify-center font-black text-xl animate-pulse text-black">{t('ledger.filtering')}</div>}
+          {isPending && <div className="absolute inset-0 bg-[var(--bg-base)]/70 backdrop-blur-[1px] z-10 flex items-center justify-center font-black text-xl animate-pulse text-[var(--text-base)]">{t('ledger.filtering')}</div>}
           
           <div className="flex justify-between items-center mb-4 flex-wrap gap-4">
              <button
                 onClick={handleSaftExport}
-                className="flex items-center gap-2 border-2 border-black bg-white px-4 py-2 font-bold text-black hover:bg-zinc-100 active:scale-95 transition-all text-sm shadow-[2px_2px_0_0_rgba(0,0,0,1)] active:shadow-none"
+                className="flex items-center gap-2 border-2 border-[var(--border-brutal)] bg-[var(--card-bg)] px-4 py-2 font-bold text-[var(--text-base)] hover:bg-[var(--muted-bg)] active:scale-95 transition-all text-sm shadow-[2px_2px_0_0_rgba(0,0,0,1)] dark:shadow-[2px_2px_0_0_rgba(24,24,27,1)] active:shadow-none"
              >
                 <FontAwesomeIcon icon={faFileExport} />
                 {t('ledger.export_saft')}
@@ -198,7 +198,7 @@ export function LedgerList() {
                 <select 
                   value={sortBy}
                   onChange={e => handleFilterChange({ sortBy: e.target.value })}
-                  className="border-2 border-black px-3 py-1 font-bold focus:outline-none bg-white text-sm"
+                  className="border-2 border-[var(--border-brutal)] px-3 py-1 font-bold focus:outline-none bg-[var(--card-bg)] text-[var(--text-base)] text-sm"
                 >
                   <option value="date_desc">{t('ledger.sort_date_desc')}</option>
                   <option value="date_asc">{t('ledger.sort_date_asc')}</option>
@@ -213,21 +213,21 @@ export function LedgerList() {
               <div key={month} className="flex flex-col gap-3">
                 <button
                   onClick={() => toggleMonth(month)}
-                  className="bg-black text-white px-4 py-3 font-black text-xl tracking-widest text-left flex justify-between items-center active:scale-95 transition-transform border-4 border-black group"
+                  className="bg-[var(--text-base)] text-[var(--bg-base)] px-4 py-3 font-black text-xl tracking-widest text-left flex justify-between items-center active:scale-95 transition-transform border-4 border-[var(--border-brutal)] group"
                 >
                   <span>{month}</span>
                   <FontAwesomeIcon icon={expandedMonths[month] ? faChevronDown : faChevronRight} className="group-active:scale-90" />
                 </button>
                 
                 {expandedMonths[month] && (
-                  <div className="flex flex-col gap-4 pl-3 border-l-4 border-black ml-1.5 transition-all">
+                  <div className="flex flex-col gap-4 pl-3 border-l-4 border-[var(--border-brutal)] ml-1.5 transition-all">
                     {txs.map((tx) => (
                       <button
                         key={tx.id}
                         onClick={() => setSelectedTx(tx)}
                         className="w-full text-left active:scale-[0.98] transition-transform duration-100 ease-in-out focus:outline-none block"
                       >
-                        <div className="border-2 border-black bg-white p-4 flex justify-between items-center hover:bg-zinc-50 transition-colors">
+                        <div className="border-2 border-[var(--border-brutal)] bg-[var(--card-bg)] p-4 flex justify-between items-center hover:bg-[var(--muted-bg)] transition-colors">
                           <div className="flex flex-col gap-1 w-full overflow-hidden mr-4">
                             <span className="font-bold truncate text-[15px]">{tx.description || t('ledger.no_description')}</span>
                             <span className="text-sm tracking-widest text-zinc-500 font-bold whitespace-nowrap overflow-hidden text-ellipsis">
@@ -235,7 +235,7 @@ export function LedgerList() {
                             </span>
                           </div>
                           <div className="flex flex-col items-end gap-1 shrink-0">
-                            <span className={`font-mono font-black text-lg whitespace-nowrap ${tx.type === 'income' ? 'text-green-600' : 'text-black'}`}>
+                            <span className={`font-mono font-black text-lg whitespace-nowrap ${tx.type === 'income' ? 'text-green-600' : 'text-[var(--text-base)]'}`}>
                               {tx.type === 'income' ? '+' : '-'}{tx.amount.toLocaleString('no-NO')} kr
                             </span>
                             {tx.vatAmount > 0 && (
@@ -253,7 +253,7 @@ export function LedgerList() {
             ))}
 
             {filteredData.length === 0 && (
-              <div className="p-8 text-center border-4 border-black border-dashed font-black tracking-widest text-xl text-zinc-400">
+              <div className="p-8 text-center border-4 border-[var(--border-brutal)] border-dashed font-black tracking-widest text-xl text-zinc-400">
                 {t('ledger.no_transactions')}
               </div>
             )}
